@@ -256,7 +256,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 </section>
 
 <section data-v="solo">
-  <div class="shead"><p class="eyebrow"><b></b>오후 · 자유</p><h1>각자 관람</h1><p class="lead">사진 + 관찰 + 우리 제품에 적용할 점. 인사이트 카드 1인 3장이 목표예요.</p></div>
+  <div class="shead"><p class="eyebrow"><b></b>오후 · 자유</p><h1>각자 관람</h1><p class="lead">AI를 어떻게 팔고, 일하는 방식을 어떻게 바꾸는지. 사진 + 관찰 + 우리 제품에 적용할 점으로 인사이트 카드 1인 3장이 목표예요.</p></div>
   <div class="host" data-host="solo"></div>
   <div class="missions" id="missions"></div>
   <form class="comp glass" id="soComp" autocomplete="off">
@@ -264,7 +264,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
     <div class="f">
       <input type="text" id="soTitle" maxlength="60" placeholder="부스 · 작품 이름">
       <textarea id="soText" maxlength="1000" placeholder="무엇을 봤나요?"></textarea>
-      <textarea id="soApply" maxlength="600" placeholder="우리 제품(Agent · 대시보드 · 랜딩)에 적용한다면?" style="min-height:64px"></textarea>
+      <textarea id="soApply" maxlength="600" placeholder="우리 AI 프로덕트 · 마케팅에 적용한다면?" style="min-height:64px"></textarea>
       <div class="chips" id="soMission"></div>
       <button class="btn">올리기</button>
     </div>
@@ -329,8 +329,8 @@ const QS=[
  {id:'ad',r:'d',t:'AI의 작업 상태나 결과물을 보여준 디자인 중 가져오고 싶은 것은?',h:'Agent "생각 중 / 작업 중 / 완료" UX, AI 브랜드 톤 재료로'},
  {id:'af',r:'f',t:'AI 체험 부스는 어떻게 구현했을까요?',h:'실시간 생성 · LLM 연동 · 센서 등 추정 — 우리 제품에 붙인다면?'}
 ];
-const MISSIONS={d:[['상태 표현 수집','로딩·대기·반응·완료 모션 3개'],['신뢰 디자인','믿음 가는 부스 vs 아닌 부스'],['정보 위계','복잡한 정보를 쉽게 전달한 사례'],['브랜드 톤 보드','가져가고 싶은 분위기 5장']],
- f:[['인터랙션 역설계','구현 방식 · 난이도 · 성능 추정'],['사용자 관찰','사람들이 막히거나 망설인 순간'],['피드백 패턴','소리 · 빛 · 진동 · 모션 반응'],['디자인 시스템 흔적','반복되는 간격 · 그리드 규칙']]};
+const MISSIONS={d:[['AI 표현 방식','캐릭터 · 의인화 · 추상 비주얼 사례 3개'],['AI 카피 수집','설득력 있는 한 줄 → 우리 제품 버전으로'],['신뢰 장치','AI를 믿게 만든 것 vs 불안하게 만든 것'],['AX 스토리텔링','업무 전후를 보여준 방식 → 영상 · 랜딩 재료']],
+ f:[['AI 인터랙션 역설계','생성 · 응답 연출의 구현 방식과 난이도'],['AI 체험 관찰','사람들이 막히거나 망설인 순간'],['응답 대기 UX','기다림 · 진행 상태를 어떻게 처리했나'],['AX 데모 구조','실제 업무 흐름을 데모로 묶은 방식']]};
 const ROLE={d:'디자이너',f:'개발자'},GN=['A','B','C'];
 let db=null,user=null,assets=null,me=null,isOwner=false;
 let members={},answers={},meta={},groups={},gstate={},notes=[];
