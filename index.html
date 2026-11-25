@@ -183,6 +183,7 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .trow .who2{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:14.5px}
 .trow .who2 span{display:inline-flex;gap:6px;align-items:center}
 @media(max-width:420px){.opts.three .opt{padding:14px 12px}.opt b{font-size:17px}}
+.err{background:#fff;box-shadow:var(--sh);padding:16px 18px;margin-bottom:20px;display:grid;gap:6px;border:2px solid #e8452c}.err code{font-size:13px;color:#b3261e;overflow-wrap:anywhere}
 /* square everything */
 *,*::before,*::after{border-radius:0!important}
 input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
@@ -551,8 +552,9 @@ go(location.hash.slice(1)||STAGES[0][0]);renderAll();
 
 /* connect (Supabase) */
 (async()=>{
+  const fail=(t,d)=>{const b=document.createElement('div');b.className='err';b.innerHTML='<b></b><p></p><code></code>';b.querySelector('b').textContent=t;b.querySelector('p').textContent='이 화면을 캡처해서 보내 주세요.';b.querySelector('code').textContent=d||'';document.querySelector('main').prepend(b)};
   const timer=setTimeout(()=>toast('보드 연결이 늦어요. 와이파이를 확인하고 새로고침해 주세요'),10000);
-  if(!window.supabase){clearTimeout(timer);toast('보드를 불러오지 못했어요. 새로고침해 주세요');return}
+  if(!window.supabase){clearTimeout(timer);fail('연결 도구를 불러오지 못했어요','supabase-js 로드 실패 (네트워크 또는 차단)');return}
   const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false}});
   const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
   if(/[?&]host\b/.test(location.search))ls.set('dk_host','1');
@@ -578,7 +580,7 @@ go(location.hash.slice(1)||STAGES[0][0]);renderAll();
     delete:async p=>sb.storage.from('photos').remove([p])
   };
   const load=async()=>{const {data,error}=await sb.from('docs').select('*').limit(5000);if(error)throw error;cache.clear();data.forEach(put)};
-  try{await load()}catch(e){clearTimeout(timer);toast('보드에 연결하지 못했어요. 새로고침해 주세요');console.error(e);return}
+  try{await load()}catch(e){clearTimeout(timer);fail('보드에 연결하지 못했어요',[e&&e.code,e&&e.message,e&&e.hint].filter(Boolean).join(' · ')||String(e));console.error(e);return}
   sb.channel('docs-live').on('postgres_changes',{event:'*',schema:'public',table:'docs'},p=>{if(p.eventType==='DELETE'){const o=p.old||{};cache.delete(o.col+'/'+o.id)}else if(p.new)put(p.new);emit()})
     .subscribe(s=>{if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')toast('실시간 연결이 불안정해요 — 새로고침하면 최신으로 보여요')});
   addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load().then(emit).catch(()=>{})});
