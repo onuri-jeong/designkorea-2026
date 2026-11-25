@@ -145,7 +145,12 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .obtop{background:var(--lime);padding:calc(env(safe-area-inset-top) + 28px) 0 30px}
 .obtop .brand{font-size:28px}
 .obc{padding:26px 20px 40px;display:grid;gap:16px}
-.dots{display:flex;gap:6px}.dots i{width:24px;height:5px;border-radius:99px;background:var(--soft)}.dots i.on{background:var(--ink)}
+.ob{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+.obbar{position:fixed;left:0;right:0;bottom:0;padding:16px 0 calc(14px + env(safe-area-inset-bottom));background:linear-gradient(rgba(255,255,255,0),#fff 34%)}
+.obbar .wrap{display:flex;gap:8px}
+.cta{border:0;font:inherit;font-weight:800;font-size:16px;min-height:56px;flex:1;cursor:pointer;background:var(--lime);color:var(--ink);letter-spacing:-.02em;transition:background .2s,color .2s}
+.cta:disabled{background:var(--soft);color:#a6a6a2;cursor:default}
+.cta.ghost{flex:none;width:56px;background:var(--card);font-size:20px}
 .roles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .roles button{border:0;font:inherit;text-align:left;padding:18px 16px;border-radius:22px;background:var(--card);cursor:pointer;color:var(--ink);display:grid;gap:14px;min-height:160px;align-content:space-between}
 .roles button.on{background:var(--ink);color:#fff}
@@ -158,6 +163,9 @@ input:focus,textarea:focus{border-color:var(--ink)}
 @keyframes in{from{opacity:0;transform:translateX(14px)}}
 @media(prefers-reduced-motion:reduce){section[data-v].show{animation:none}}
 @media(max-width:420px){.jr .lb2{font-size:11px}.mechip .nm{display:none}.mechip{padding:5px}}
+/* square everything */
+*,*::before,*::after{border-radius:0!important}
+input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 </style>
 </head>
 <body>
@@ -247,20 +255,19 @@ input:focus,textarea:focus{border-color:var(--ink)}
 <div class="ob" id="ob" hidden>
   <div class="obtop"><div class="wrap"><div class="brand">DESIGN<br>KOREA 2026<span>팀 관람 여정 · 11.26 목 · COEX HALL B</span></div></div></div>
   <div class="wrap obc">
-    <div class="dots"><i class="on"></i><i id="dot2"></i></div>
     <div id="ob1" style="display:grid;gap:16px">
       <h1 style="font-size:30px">오늘 어떤 시선으로<br>볼까요?</h1>
       <div class="roles" id="roles">
         <button data-r="d"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c3 3 3 13 0 16"/></svg></span><div><b>디자이너</b><span>표현 · 위계 · 톤</span></div></button>
         <button data-r="f"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg></span><div><b>프론트엔드</b><span>구현 · 상태 · 성능</span></div></button>
       </div>
-      <button class="btn" id="obNext" disabled style="min-height:56px;font-size:16px">다음</button>
+      <div class="obbar"><div class="wrap"><button class="cta" id="obNext" disabled>다음</button></div></div>
     </div>
     <div id="ob2" style="display:none;gap:16px">
       <h1 style="font-size:30px">닉네임을<br>정해 주세요</h1>
       <p class="sub">보드에서 이 이름으로 보여요. 다른 기기에서도 같은 닉네임이면 이어서 할 수 있어요.</p>
       <input type="text" id="nickIn" maxlength="12" placeholder="예: 픽셀장인">
-      <div class="row" style="flex-wrap:nowrap"><button class="btn ghost" id="obBack" style="min-height:56px">이전</button><button class="btn" id="obGo" style="flex:1;min-height:56px;font-size:16px;background:var(--lime);color:var(--ink)">여정 시작</button></div>
+      <div class="obbar"><div class="wrap"><button class="cta ghost" id="obBack" aria-label="이전">←</button><button class="cta" id="obGo" disabled>여정 시작</button></div></div>
     </div>
   </div>
 </div>
@@ -318,16 +325,16 @@ document.addEventListener('click',e=>{const m=e.target.closest('[data-move]');if
 
 /* onboarding */
 let obRole='';
-function openOb(){const m=members[me]||{};obRole=m.role||'';$('#nickIn').value=m.nick||'';paintRoles();$('#ob1').style.display='grid';$('#ob2').style.display='none';$('#dot2').classList.remove('on');$('#ob').hidden=false}
+function openOb(){const m=members[me]||{};obRole=m.role||'';$('#nickIn').value=m.nick||'';$('#obGo').disabled=!$('#nickIn').value.trim();paintRoles();$('#ob1').style.display='grid';$('#ob2').style.display='none';$('#ob').hidden=false}
 function paintRoles(){$$('#roles button').forEach(b=>b.classList.toggle('on',b.dataset.r===obRole));$('#obNext').disabled=!obRole}
 $('#roles').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(b){obRole=b.dataset.r;paintRoles()}});
-$('#obNext').addEventListener('click',()=>{$('#ob1').style.display='none';$('#ob2').style.display='grid';$('#dot2').classList.add('on');setTimeout(()=>$('#nickIn').focus(),30)});
-$('#obBack').addEventListener('click',()=>{$('#ob2').style.display='none';$('#ob1').style.display='grid';$('#dot2').classList.remove('on')});
+$('#obNext').addEventListener('click',()=>{$('#ob1').style.display='none';$('#ob2').style.display='grid';setTimeout(()=>$('#nickIn').focus(),30)});
+$('#obBack').addEventListener('click',()=>{$('#ob2').style.display='none';$('#ob1').style.display='grid'});
 const obGo=()=>{const n=$('#nickIn').value.trim();if(!n){toast('닉네임을 입력해 주세요');return}if(!db||!me){toast('보드에 연결되지 않았어요');return}
   const twin=Object.keys(members).find(id=>id!==me&&members[id].nick===n&&!(members[me]&&members[me].nick));if(twin){me=twin;try{localStorage.setItem('dk_uid',twin)}catch(e){}lastSaved='';amFor=null;toast('기존 닉네임으로 이어서 할게요')}
   const next={...(members[me]||{}),role:obRole,nick:n,at:Date.now()};members[me]=next;$('#ob').hidden=true;renderAll();
   q('m',()=>db.doc('members/'+me).set(next))};
-$('#obGo').addEventListener('click',obGo);$('#nickIn').addEventListener('keydown',e=>{if(e.key==='Enter')obGo()});
+$('#obGo').addEventListener('click',obGo);$('#nickIn').addEventListener('input',()=>{$('#obGo').disabled=!$('#nickIn').value.trim()});$('#nickIn').addEventListener('keydown',e=>{if(e.key==='Enter')obGo()});
 $('#meChip').addEventListener('click',()=>{if(me)openOb()});
 function renderMe(){const m=members[me];$('#meNick').textContent=m&&m.nick?`${m.nick} · ${ROLE[m.role]||''}`:'입장 전';$('#meAv').className='av '+(m?m.role||'':'');$('#meAv').textContent=m&&m.nick?m.nick.slice(0,1):'?'}
 
