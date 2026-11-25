@@ -150,11 +150,11 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .obbar .wrap{display:flex;gap:8px}
 .cta{border:0;font:inherit;font-weight:800;font-size:16px;min-height:56px;flex:1;cursor:pointer;background:var(--lime);color:var(--ink);letter-spacing:-.02em;transition:background .2s,color .2s}
 .cta:disabled{background:var(--soft);color:#a6a6a2;cursor:default}
-.cta.ghost{flex:none;width:56px;background:var(--card);font-size:20px}
+.cta.ghost{flex:none;width:56px;background:#fff;font-size:20px;box-shadow:0 2px 6px rgba(0,0,0,.06),0 10px 28px rgba(0,0,0,.08)}
 .roles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.roles button{border:0;font:inherit;text-align:left;padding:18px 16px;border-radius:22px;background:var(--card);cursor:pointer;color:var(--ink);display:grid;gap:14px;min-height:160px;align-content:space-between}
-.roles button.on{background:var(--ink);color:#fff}
-.roles .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--lime)}
+.roles button{border:1px solid transparent;font:inherit;text-align:left;padding:18px 16px;background:#fff;cursor:pointer;color:var(--ink);display:grid;gap:14px;min-height:160px;align-content:space-between;box-shadow:0 2px 6px rgba(0,0,0,.06),0 10px 28px rgba(0,0,0,.08);transition:box-shadow .2s,border-color .2s}
+.roles button.on{border-color:var(--ink);box-shadow:0 12px 32px rgba(120,220,70,.55),0 4px 10px rgba(120,220,70,.35)}
+.roles .ic{width:46px;height:46px;display:grid;place-items:center;margin-left:-11px;margin-top:-8px}
 .roles b{font-size:19px;display:block}.roles span{font-size:13px;opacity:.65}
 .lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;place-items:center;z-index:50;padding:20px;cursor:zoom-out}
 .lb.show{display:grid}.lb img{max-width:100%;max-height:92vh;border-radius:12px}
@@ -259,7 +259,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
       <h1 style="font-size:30px">오늘 어떤 시선으로<br>볼까요?</h1>
       <div class="roles" id="roles">
         <button data-r="d"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c3 3 3 13 0 16"/></svg></span><div><b>디자이너</b><span>표현 · 위계 · 톤</span></div></button>
-        <button data-r="f"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg></span><div><b>프론트엔드</b><span>구현 · 상태 · 성능</span></div></button>
+        <button data-r="f"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg></span><div><b>개발자</b><span>구현 · 상태 · 성능</span></div></button>
       </div>
       <div class="obbar"><div class="wrap"><button class="cta" id="obNext" disabled>다음</button></div></div>
     </div>
@@ -291,7 +291,7 @@ const QS=[
 ];
 const MISSIONS={d:[['상태 표현 수집','로딩·대기·반응·완료 모션 3개'],['신뢰 디자인','믿음 가는 부스 vs 아닌 부스'],['정보 위계','복잡한 정보를 쉽게 전달한 사례'],['브랜드 톤 보드','가져가고 싶은 분위기 5장']],
  f:[['인터랙션 역설계','구현 방식 · 난이도 · 성능 추정'],['사용자 관찰','사람들이 막히거나 망설인 순간'],['피드백 패턴','소리 · 빛 · 진동 · 모션 반응'],['디자인 시스템 흔적','반복되는 간격 · 그리드 규칙']]};
-const ROLE={d:'디자이너',f:'프론트엔드'},GN=['A','B','C'];
+const ROLE={d:'디자이너',f:'개발자'},GN=['A','B','C'];
 let db=null,user=null,assets=null,me=null,isOwner=false;
 let members={},answers={},meta={},groups={},gstate={},notes=[];
 let view='am',metaSeen=false,membersLoaded=false,soF='all',soM='',rvView='';
