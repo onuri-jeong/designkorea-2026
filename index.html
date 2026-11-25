@@ -29,11 +29,11 @@ h3{font-size:17px;margin:0;font-weight:700;line-height:1.4;letter-spacing:-.02em
 .mechip .av{width:30px;height:30px}
 .av.f{background:var(--ink);color:var(--lime)}.av.d{background:var(--lime);color:var(--ink)}
 .av.s{width:22px;height:22px;font-size:11px}
-.jr{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;list-style:none;padding:0;margin:16px 0 0}
+.jr{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;list-style:none;padding:0;margin:16px 0 0}
 .jr button{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;padding:6px 0 2px}
 .jr button:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
 .jr .bar{display:block;height:4px;border-radius:99px;background:rgba(0,0,0,.16)}
-.jr .lb2{display:flex;gap:4px;align-items:center;font-size:12px;font-weight:600;margin-top:7px;white-space:nowrap;overflow:hidden;color:rgba(0,0,0,.55)}
+.jr .lb2{display:flex;gap:3px;align-items:center;font-size:11.5px;font-weight:600;margin-top:7px;white-space:nowrap;overflow:hidden;color:rgba(0,0,0,.55)}
 .jr li.done .bar,.jr li.view .bar{background:var(--ink)}
 .jr li.view .lb2{color:var(--ink);font-weight:800}
 .jr .dot{width:6px;height:6px;border-radius:50%;background:#e8452c;display:none;flex:none}.jr li.live .dot{display:block}
@@ -163,6 +163,26 @@ input:focus,textarea:focus{border-color:var(--ink)}
 @keyframes in{from{opacity:0;transform:translateX(14px)}}
 @media(prefers-reduced-motion:reduce){section[data-v].show{animation:none}}
 @media(max-width:420px){.jr .lb2{font-size:11px}.mechip .nm{display:none}.mechip{padding:5px}}
+/* options (coffee, lunch menu) */
+.opts{display:grid;gap:10px}.opts.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opt{border:1px solid transparent;font:inherit;text-align:left;padding:16px;background:#fff;cursor:pointer;color:var(--ink);display:grid;gap:12px;position:relative;box-shadow:0 2px 6px rgba(0,0,0,.06),0 10px 28px rgba(0,0,0,.08);transition:border-color .2s}
+.opt.on{border-color:var(--lime);box-shadow:inset 0 0 0 1px var(--lime),0 2px 6px rgba(0,0,0,.06),0 10px 28px rgba(0,0,0,.08)}
+.opt .ic{font-size:34px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.opt b{font-size:19px;display:block;letter-spacing:-.02em}.opt span.d{font-size:13px;color:var(--sub);display:block;margin-top:2px}
+.opt .cnt{position:absolute;top:14px;right:14px;font-style:normal;font-size:13px;font-weight:800}
+.opts.three .opt{min-height:150px;align-content:space-between}
+.mn{grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:18px 16px}
+.mn .cnt{position:static;font-size:15px}
+.mn .vb2{grid-column:1/-1;display:grid;gap:8px}
+.vbar{height:6px;background:var(--card)}.vbar i{display:block;height:100%;background:var(--ink);transition:width .4s}
+.voters{display:flex;flex-wrap:wrap;gap:4px;min-height:22px}
+.tag.top{background:var(--ink);color:var(--lime)}
+.tally{display:grid}
+.trow{display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--line);align-items:flex-start}.trow:first-child{border-top:0}
+.trow>b{min-width:64px;font-size:15px}.trow>b i{font-style:normal;color:var(--sub);font-weight:600;margin-left:4px}
+.trow .who2{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:14.5px}
+.trow .who2 span{display:inline-flex;gap:6px;align-items:center}
+@media(max-width:420px){.opts.three .opt{padding:14px 12px}.opt b{font-size:17px}}
 /* square everything */
 *,*::before,*::after{border-radius:0!important}
 input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
@@ -180,8 +200,17 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 </header>
 
 <main class="wrap">
+<section data-v="coffee">
+  <div class="shead"><p class="eyebrow"><b></b>10:30 전 · 아침</p><h1>모닝 커피<br>뭐 마실래요?</h1><p class="lead">모이기 전에 한 번에 주문해요. 고르면 바로 집계돼요.</p></div>
+  <div class="host" data-host="coffee"></div>
+  <div class="opts three" id="cfOpts"></div>
+  <div id="cfEtcWrap" hidden style="margin-top:12px"><input type="text" id="cfEtc" maxlength="30" placeholder="뭐로 드릴까요? 예: 바닐라라떼 아이스"></div>
+  <h2 style="margin:28px 0 4px">주문 정리</h2>
+  <div class="tally" id="cfTally"></div>
+</section>
+
 <section data-v="am">
-  <div class="shead"><p class="eyebrow"><b>1 / 5</b>10:30–12:00 · 다 같이</p><h1>둘러보며<br>질문에 답해요</h1><p class="lead">정답은 없어요. 걸으면서 떠오르는 대로 짧게. 입력하면 자동 저장돼요.</p>
+  <div class="shead"><p class="eyebrow"><b></b>10:30–12:00 · 다 같이</p><h1>둘러보며<br>질문에 답해요</h1><p class="lead">정답은 없어요. 걸으면서 떠오르는 대로 짧게. 입력하면 자동 저장돼요.</p>
     <div class="row"><div class="prog"><i id="amBar"></i></div><span class="note" id="amCnt"></span></div></div>
   <div class="host" data-host="am"></div>
   <div class="qs" id="qs"></div>
@@ -193,15 +222,22 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
   <p class="saved" id="amSaved" style="margin-top:8px"></p>
 </section>
 
+<section data-v="menu">
+  <div class="shead"><p class="eyebrow"><b></b>12:00 전 · 점심</p><h1>점심<br>어디서 먹을까요?</h1><p class="lead">코엑스몰 세 곳 중 한 곳에 투표해요. 다시 누르면 바꿀 수 있어요.</p></div>
+  <div class="host" data-host="menu"></div>
+  <div class="opts" id="mnOpts"></div>
+  <p class="note" id="mnNote" style="margin-top:12px"></p>
+</section>
+
 <section data-v="lunch">
-  <div class="shead"><p class="eyebrow"><b>2 / 5</b>점심</p><h1>조 편성</h1><p class="lead">디자이너 1 + 개발자 1씩 섞어요. 오전 베스트 하나씩 이야기하면서 정해 보세요.</p>
+  <div class="shead"><p class="eyebrow"><b></b>점심</p><h1>조 편성</h1><p class="lead">디자이너 1 + 개발자 1씩 섞어요. 오전 베스트 하나씩 이야기하면서 정해 보세요.</p>
     <div><button class="btn" id="shuffle">자동 혼합 편성</button></div></div>
   <div class="host" data-host="lunch"></div>
   <div id="groups"></div>
 </section>
 
 <section data-v="revisit">
-  <div class="shead"><p class="eyebrow"><b>3 / 5</b>오후 · 1시간</p><h1>조별로<br>다시 보기</h1><p class="lead">같은 부스, 다른 시선 — 각자 3분 따로 보고, 다르게 본 점을 남겨요.</p>
+  <div class="shead"><p class="eyebrow"><b></b>오후 · 1시간</p><h1>조별로<br>다시 보기</h1><p class="lead">같은 부스, 다른 시선 — 각자 3분 따로 보고, 다르게 본 점을 남겨요.</p>
     <div class="seg" id="gSeg"></div></div>
   <div class="host" data-host="revisit"></div>
   <div class="rvtop">
@@ -219,7 +255,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 </section>
 
 <section data-v="solo">
-  <div class="shead"><p class="eyebrow"><b>4 / 5</b>오후 · 자유</p><h1>각자 관람</h1><p class="lead">사진 + 관찰 + 우리 제품에 적용할 점. 인사이트 카드 1인 3장이 목표예요.</p></div>
+  <div class="shead"><p class="eyebrow"><b></b>오후 · 자유</p><h1>각자 관람</h1><p class="lead">사진 + 관찰 + 우리 제품에 적용할 점. 인사이트 카드 1인 3장이 목표예요.</p></div>
   <div class="host" data-host="solo"></div>
   <div class="missions" id="missions"></div>
   <form class="comp glass" id="soComp" autocomplete="off">
@@ -237,7 +273,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 </section>
 
 <section data-v="end">
-  <div class="shead"><p class="eyebrow"><b>5 / 5</b>해산 전</p><h1>오늘 모은 것</h1><p class="lead">수고했어요! 한 줄 소감 남기고 해산. 사후 공유 때 이 화면을 그대로 띄우면 돼요.</p></div>
+  <div class="shead"><p class="eyebrow"><b></b>해산 전</p><h1>오늘 모은 것</h1><p class="lead">수고했어요! 한 줄 소감 남기고 해산. 사후 공유 때 이 화면을 그대로 띄우면 돼요.</p></div>
   <div class="host" data-host="end"></div>
   <div class="stats" id="stats"></div>
   <div class="glass" style="padding:18px;margin-top:12px;display:grid;gap:10px">
@@ -280,7 +316,9 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 const SB_URL='https://ldlqxjpgkvqwhuzxsiqm.supabase.co',SB_KEY='sb_publishable_h-I0hoiMFDi841U8XDyY2A_3ZHiswmU';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const STAGES=[['am','10:30–12:00','오전','다 같이 둘러보며 질문에 답하기'],['lunch','점심','조 편성','디자이너+개발자 혼합 조'],['revisit','오후 · 1시간','재방문','조원들이 고른 부스 다시 보기'],['solo','오후 · 자유','각자 관람','인사이트 카드 1인 3장'],['end','해산 전','마무리','오늘 모은 것 · 한 줄 소감']];
+const STAGES=[['coffee','10:30 전','커피','아침 커피 고르기'],['am','10:30–12:00','오전','다 같이 둘러보며 질문에 답하기'],['menu','12:00 전','점심 메뉴','식당 투표'],['lunch','점심','조 편성','디자이너+개발자 혼합 조'],['revisit','오후 · 1시간','재방문','조원들이 고른 부스 다시 보기'],['solo','오후 · 자유','각자 관람','인사이트 카드 1인 3장'],['end','해산 전','마무리','오늘 모은 것 · 한 줄 소감']];
+const COFFEE=[['hot','뜨아','☕','따뜻하게'],['ice','아아','🧊','시원하게'],['etc','기타','🥤','직접 적기']];
+const LUNCH=[['shabu','샤브촌by계백집 코엑스몰점','🍲','샤브샤브'],['nippong','니뽕내뽕 코엑스점','🍝','짬뽕'],['soi','소이연남 코엑스점','🍜','태국식 쌀국수']];
 const QS=[
  {id:'q1',t:'첫 3초에 시선을 잡은 부스는?',h:'부스 이름과 무엇 때문에 멈췄는지'},
  {id:'q2',t:'복잡한 기술·개념을 가장 직관적으로 보여준 곳은?',h:'영상 · 체험 · 비유 중 어떤 방식이었나'},
@@ -312,11 +350,12 @@ const queues={};const q=(k,fn)=>queues[k]=(queues[k]||Promise.resolve()).then(fn
 function renderJr(){
   const vi=STAGES.findIndex(x=>x[0]===view);
   $('#jr').innerHTML=STAGES.map(([k,t,n],i)=>`<li class="${i<vi?'done':''} ${k===view?'view':''} ${k===meta.stage?'live':''}"><button data-s="${k}" aria-label="${n}${k===meta.stage?' (진행 중)':''}"><span class="bar"></span><span class="lb2"><span class="dot"></span>${n}</span></button></li>`).join('');
+  $$('section[data-v]').forEach(s=>{const i=STAGES.findIndex(x=>x[0]===s.dataset.v),e=s.querySelector('.eyebrow b');if(e)e.textContent=`${i+1} / ${STAGES.length}`});
   $('#prevBtn').hidden=vi<=0;const nx=STAGES[vi+1];$('#nextBtn').hidden=!nx;
   if(nx)$('#nextBtn').innerHTML=`<b>다음 · ${nx[2]}</b><span>${nx[1]} →</span>`;
   $$('.host').forEach(h=>{h.classList.toggle('on',isOwner);h.innerHTML=isOwner?(meta.stage===h.dataset.host?'<span class="tag a">모두 이 단계에 있어요</span>':`<span>진행자 전용</span><button class="btn sm ghost" data-move="${h.dataset.host}">모두 이 단계로 이동</button>`):'';h.style.marginBottom=isOwner?'12px':''});
 }
-function go(s,push){if(!STAGES.some(x=>x[0]===s))s='am';const changed=view!==s;view=s;$$('section[data-v]').forEach(x=>x.classList.toggle('show',x.dataset.v===s));renderJr();if(push&&location.hash!=='#'+s)history.replaceState(null,'','#'+s);if(changed)scrollTo({top:0})}
+function go(s,push){if(!STAGES.some(x=>x[0]===s))s=STAGES[0][0];const changed=view!==s;view=s;$$('section[data-v]').forEach(x=>x.classList.toggle('show',x.dataset.v===s));renderJr();if(push&&location.hash!=='#'+s)history.replaceState(null,'','#'+s);if(changed)scrollTo({top:0})}
 $('#jr').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b)go(b.dataset.s,true)});
 const step=d=>{const i=STAGES.findIndex(x=>x[0]===view)+d;if(STAGES[i])go(STAGES[i][0],true)};
 $('#prevBtn').addEventListener('click',()=>step(-1));$('#nextBtn').addEventListener('click',()=>step(1));
@@ -483,8 +522,32 @@ document.addEventListener('click',async e=>{
 });
 $('#lb').addEventListener('click',()=>$('#lb').classList.remove('show'));addEventListener('keydown',e=>{if(e.key==='Escape')$('#lb').classList.remove('show')});
 
-function renderAll(){renderMe();renderJr();renderAm();renderLunch();renderRevisit();renderMissions();renderSolo();renderEnd()}
-go(location.hash.slice(1)||'am');renderAll();
+/* coffee + lunch menu */
+const joined=()=>Object.keys(members).filter(i=>members[i]&&members[i].nick);
+function saveMember(patch){if(!db||!me||!members[me])return;const next={...members[me],...patch};delete next.id;members[me]=next;renderCoffee();renderMenu();q('m',()=>db.doc('members/'+me).set(next))}
+function renderCoffee(){const my=members[me]||{},ids=joined();
+  $('#cfOpts').innerHTML=COFFEE.map(([k,l,e,d])=>{const n=ids.filter(i=>members[i].coffee===k).length;return `<button class="opt ${my.coffee===k?'on':''}" data-cf="${k}"><span class="ic" aria-hidden="true">${e}</span><div><b>${l}</b><span class="d">${d}</span></div>${n?`<i class="cnt">${n}</i>`:''}</button>`}).join('');
+  $('#cfEtcWrap').hidden=my.coffee!=='etc';const ei=$('#cfEtc');if(document.activeElement!==ei)ei.value=my.coffeeEtc||'';
+  const row=(lab,list,fmt)=>`<div class="trow"><b>${lab}<i>${list.length}</i></b><div class="who2">${list.length?list.map(fmt).join(''):'<span class="note">—</span>'}</div></div>`;
+  const nm1=i=>`<span>${av(i,1)}${esc(nick(i))}</span>`;
+  $('#cfTally').innerHTML=row('뜨아',ids.filter(i=>members[i].coffee==='hot'),nm1)+row('아아',ids.filter(i=>members[i].coffee==='ice'),nm1)
+    +row('기타',ids.filter(i=>members[i].coffee==='etc'),i=>`<span>${av(i,1)}${esc(nick(i))} · ${esc(members[i].coffeeEtc||'메뉴 미정')}</span>`)
+    +row('미선택',ids.filter(i=>!members[i].coffee),nm1);
+}
+$('#cfOpts').addEventListener('click',e=>{const b=e.target.closest('[data-cf]');if(!b)return;saveMember({coffee:b.dataset.cf});if(b.dataset.cf==='etc')setTimeout(()=>$('#cfEtc').focus(),30)});
+let cfT=0;$('#cfEtc').addEventListener('input',()=>{clearTimeout(cfT);cfT=setTimeout(()=>{const v=$('#cfEtc').value.trim();if(v!==((members[me]||{}).coffeeEtc||''))saveMember({coffeeEtc:v})},700)});
+$('#cfEtc').addEventListener('blur',()=>{clearTimeout(cfT);const v=$('#cfEtc').value.trim();if(v!==((members[me]||{}).coffeeEtc||''))saveMember({coffeeEtc:v})});
+function renderMenu(){const my=members[me]||{},ids=joined(),voted=ids.filter(i=>members[i].lunch);
+  const cnt=k=>ids.filter(i=>members[i].lunch===k).length,max=Math.max(0,...LUNCH.map(x=>cnt(x[0])));
+  $('#mnOpts').innerHTML=LUNCH.map(([k,l,e,d])=>{const n=cnt(k),vs=ids.filter(i=>members[i].lunch===k);
+    return `<button class="opt mn ${my.lunch===k?'on':''}" data-mn="${k}"><span class="ic" aria-hidden="true">${e}</span><div><b>${l}</b><span class="d">${d}${n&&n===max?' · <span class="tag top">1위</span>':''}</span></div><i class="cnt">${n}표</i>
+      <div class="vb2"><div class="vbar"><i style="width:${voted.length?Math.round(n/voted.length*100):0}%"></i></div><div class="voters">${vs.map(i=>av(i,1)).join('')}</div></div></button>`}).join('');
+  $('#mnNote').textContent=`${voted.length}/${ids.length}명 투표`+(ids.length-voted.length?` · 아직 안 한 사람: ${ids.filter(i=>!members[i].lunch).map(nick).join(', ')}`:' · 모두 투표했어요');
+}
+$('#mnOpts').addEventListener('click',e=>{const b=e.target.closest('[data-mn]');if(b)saveMember({lunch:b.dataset.mn})});
+
+function renderAll(){renderMe();renderCoffee();renderMenu();renderJr();renderAm();renderLunch();renderRevisit();renderMissions();renderSolo();renderEnd()}
+go(location.hash.slice(1)||STAGES[0][0]);renderAll();
 
 /* connect (Supabase) */
 (async()=>{
