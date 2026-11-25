@@ -184,6 +184,9 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .trow .who2 span{display:inline-flex;gap:6px;align-items:center}
 @media(max-width:420px){.opts.three .opt{padding:14px 12px}.opt b{font-size:17px}}
 .err{background:#fff;box-shadow:var(--sh);padding:16px 18px;margin-bottom:20px;display:grid;gap:6px;border:2px solid #e8452c}.err code{font-size:13px;color:#b3261e;overflow-wrap:anywhere}
+.rule{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;box-shadow:var(--sh);padding:12px 14px;font-size:15px}
+.rule b{background:var(--ink);color:var(--lime);font-size:12.5px;padding:3px 9px}
+.tag.ok{background:#fff;color:var(--ink)}.tag.miss{background:#e8452c;color:#fff}
 /* square everything */
 *,*::before,*::after{border-radius:0!important}
 input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
@@ -231,7 +234,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 </section>
 
 <section data-v="lunch">
-  <div class="shead"><p class="eyebrow"><b></b>점심</p><h1>조 편성</h1><p class="lead">디자이너 1 + 개발자 1씩 섞어요. 오전 베스트 하나씩 이야기하면서 정해 보세요.</p>
+  <div class="shead"><p class="eyebrow"><b></b>점심</p><h1>조 편성</h1><div class="rule"><b>필수</b><span>각 조에 <strong>디자이너 1명 + 개발자 1명</strong>이 꼭 들어가요</span></div><p class="lead">자동 혼합 편성을 누르면 이 조건에 맞춰 섞어요. 점심 먹으며 오전 베스트 하나씩 이야기해 보세요.</p>
     <div><button class="btn" id="shuffle">자동 혼합 편성</button></div></div>
   <div class="host" data-host="lunch"></div>
   <div id="groups"></div>
@@ -413,8 +416,8 @@ function renderLunch(){
   const has=GN.some(g=>Array.isArray(groups[g])&&groups[g].length),mg=myGroup();
   $('#shuffle').textContent=has?'다시 섞기':'자동 혼합 편성';
   const ids=Object.keys(members).filter(id=>members[id].nick);
-  if(!has){$('#groups').innerHTML=`<div class="ctr glass"><h3>아직 조가 없어요</h3><p class="sub">입장한 ${ids.length}명 · 디자이너 ${ids.filter(i=>role(i)==='d').length} · 개발자 ${ids.filter(i=>role(i)==='f').length}</p><p class="note">다 모이면 "자동 혼합 편성"을 눌러 주세요.</p></div>`;return}
-  $('#groups').innerHTML=`<div class="groups">${GN.filter(g=>Array.isArray(groups[g])&&groups[g].length).map(g=>`<div class="grp glass ${g===mg?'mine':''}"><div class="row" style="justify-content:space-between"><span class="gname">${g}조</span>${g===mg?'<span class="tag a">우리 조</span>':''}</div>
+  if(!has){$('#groups').innerHTML=`<div class="ctr glass"><h3>아직 조가 없어요</h3><p class="sub">입장한 ${ids.length}명 · 디자이너 ${ids.filter(i=>role(i)==='d').length} · 개발자 ${ids.filter(i=>role(i)==='f').length}</p><p class="note">${Math.min(ids.filter(i=>role(i)==='d').length,ids.filter(i=>role(i)==='f').length,3)?`조건을 채우면 최대 ${Math.min(ids.filter(i=>role(i)==='d').length,ids.filter(i=>role(i)==='f').length,3)}개 조가 만들어져요. 다 모이면 "자동 혼합 편성"을 눌러 주세요.`:'디자이너와 개발자가 각각 1명 이상 입장해야 편성할 수 있어요.'}</p></div>`;return}
+  $('#groups').innerHTML=`<div class="groups">${GN.filter(g=>Array.isArray(groups[g])&&groups[g].length).map(g=>`<div class="grp glass ${g===mg?'mine':''}"><div class="row" style="justify-content:space-between"><span class="gname">${g}조</span><span class="row" style="gap:6px">${['d','f'].map(r=>`<span class="tag ${groups[g].some(i=>role(i)===r)?'ok':'miss'}">${ROLE[r]} ${groups[g].some(i=>role(i)===r)?'✓':'필요'}</span>`).join('')}${g===mg?'<span class="tag a">우리 조</span>':''}</span></div>
     ${groups[g].map(id=>{const rv=(answers[id]&&Array.isArray(answers[id].revisit))?answers[id].revisit:[];return `<div class="mem">${av(id)}<div><b>${esc(nick(id))}</b> <small style="display:inline">${ROLE[role(id)]||''}</small><div class="picks">${rv.length?'다시 볼 곳: '+rv.map(r=>esc(r.name)).join(', '):'다시 볼 부스 아직 없음'}</div></div></div>`}).join('')}</div>`).join('')}</div>
     <p class="note" style="margin-top:12px">${esc(nick(groups.by))}님이 ${hm(groups.at)}에 편성 · 재방문 단계에서 우리 조 부스 목록이 자동으로 만들어져요.</p>`;
 }
@@ -422,11 +425,13 @@ let shufSure=false;
 $('#shuffle').addEventListener('click',()=>{
   if(!db||!me)return;const has=GN.some(g=>Array.isArray(groups[g])&&groups[g].length);
   if(has&&!shufSure){shufSure=true;$('#shuffle').textContent='정말 다시 섞을까요?';setTimeout(()=>{shufSure=false;renderLunch()},3000);return}shufSure=false;
-  const ids=Object.keys(members).filter(id=>members[id].nick);if(ids.length<2){toast('2명 이상 입장해야 편성할 수 있어요');return}
+  const ids=Object.keys(members).filter(id=>members[id].nick),ds=ids.filter(i=>role(i)==='d'),fs=ids.filter(i=>role(i)==='f');
+  if(!ds.length||!fs.length){toast('디자이너와 개발자가 각각 1명 이상 있어야 편성할 수 있어요');return}
   const mix=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-  const k=Math.min(3,Math.max(1,Math.floor(ids.length/2))),gs=Array.from({length:k},()=>[]);
-  mix(ids.filter(i=>role(i)==='d')).forEach((id,i)=>gs[i%k].push(id));
-  mix(ids.filter(i=>role(i)!=='d')).forEach(id=>{gs.reduce((m,g)=>g.length<m.length?g:m,gs[0]).push(id)});
+  const k=Math.min(3,ds.length,fs.length),gs=Array.from({length:k},()=>[]);
+  mix(ds).forEach((id,i)=>gs[i%k].push(id));
+  mix(fs).forEach((id,i)=>gs[i%k].push(id));
+  ids.filter(i=>role(i)!=='d'&&role(i)!=='f').forEach(id=>{gs.reduce((m,g)=>g.length<m.length?g:m,gs[0]).push(id)});
   const body={at:Date.now(),by:me};GN.forEach((g,i)=>body[g]=gs[i]||[]);
   q('groups',()=>db.doc('meta/groups').set(body));toast('조를 편성했어요');
 });
