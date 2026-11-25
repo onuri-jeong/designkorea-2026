@@ -12,6 +12,8 @@ create table if not exists public.docs (
 alter table public.docs replica identity full;
 
 -- 2) 링크를 가진 사람은 읽고 쓸 수 있게 (로그인 없음)
+grant usage on schema public to anon;
+grant select, insert, update, delete on table public.docs to anon;
 alter table public.docs enable row level security;
 drop policy if exists "docs read"   on public.docs;
 drop policy if exists "docs write"  on public.docs;
