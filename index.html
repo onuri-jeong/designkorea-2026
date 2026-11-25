@@ -187,6 +187,9 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .rule{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;box-shadow:var(--sh);padding:12px 14px;font-size:15px}
 .rule b{background:var(--ink);color:var(--lime);font-size:12.5px;padding:3px 9px}
 .tag.ok{background:#fff;color:var(--ink)}.tag.miss{background:#e8452c;color:#fff}
+.mem.spin b{color:var(--sub)}.mem.spin .av{opacity:.6}
+.mem.land{animation:land .35s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes land{from{transform:scale(.92);opacity:.4}to{transform:none;opacity:1}}
 /* square everything */
 *,*::before,*::after{border-radius:0!important}
 input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
@@ -234,8 +237,8 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 </section>
 
 <section data-v="lunch">
-  <div class="shead"><p class="eyebrow"><b></b>점심</p><h1>조 편성</h1><div class="rule"><b>필수</b><span>각 조에 <strong>디자이너 1명 + 개발자 1명</strong>이 꼭 들어가요</span></div><p class="lead">자동 혼합 편성을 누르면 이 조건에 맞춰 섞어요. 점심 먹으며 오전 베스트 하나씩 이야기해 보세요.</p>
-    <div><button class="btn" id="shuffle">자동 혼합 편성</button></div></div>
+  <div class="shead"><p class="eyebrow"><b></b>점심</p><h1>조 편성</h1><div class="rule"><b>필수</b><span>각 조에 <strong>디자이너 1명 + 개발자 1명</strong>이 꼭 들어가요</span></div><p class="lead">조는 미리 정해지지 않아요. 점심 자리에서 진행자가 뽑으면 모두의 화면에 동시에 랜덤으로 공개돼요.</p>
+    <div class="row"><button class="btn" id="shuffle">🎲 랜덤 조 뽑기</button><button class="btn ghost" id="resetG" hidden>조 초기화</button></div></div>
   <div class="host" data-host="lunch"></div>
   <div id="groups"></div>
 </section>
@@ -412,19 +415,37 @@ $('section[data-v="am"]').addEventListener('input',e=>{if(e.target.matches('text
 $('section[data-v="am"]').addEventListener('focusout',e=>{if(e.target.matches('textarea,input'))saveAm()});
 
 /* lunch */
+let gAt=null,animUntil=0;
 function renderLunch(){
+  if(Date.now()<animUntil)return;
   const has=GN.some(g=>Array.isArray(groups[g])&&groups[g].length),mg=myGroup();
-  $('#shuffle').textContent=has?'다시 섞기':'자동 혼합 편성';
-  const ids=Object.keys(members).filter(id=>members[id].nick);
-  if(!has){$('#groups').innerHTML=`<div class="ctr glass"><h3>아직 조가 없어요</h3><p class="sub">입장한 ${ids.length}명 · 디자이너 ${ids.filter(i=>role(i)==='d').length} · 개발자 ${ids.filter(i=>role(i)==='f').length}</p><p class="note">${Math.min(ids.filter(i=>role(i)==='d').length,ids.filter(i=>role(i)==='f').length,3)?`조건을 채우면 최대 ${Math.min(ids.filter(i=>role(i)==='d').length,ids.filter(i=>role(i)==='f').length,3)}개 조가 만들어져요. 다 모이면 "자동 혼합 편성"을 눌러 주세요.`:'디자이너와 개발자가 각각 1명 이상 입장해야 편성할 수 있어요.'}</p></div>`;return}
-  $('#groups').innerHTML=`<div class="groups">${GN.filter(g=>Array.isArray(groups[g])&&groups[g].length).map(g=>`<div class="grp glass ${g===mg?'mine':''}"><div class="row" style="justify-content:space-between"><span class="gname">${g}조</span><span class="row" style="gap:6px">${['d','f'].map(r=>`<span class="tag ${groups[g].some(i=>role(i)===r)?'ok':'miss'}">${ROLE[r]} ${groups[g].some(i=>role(i)===r)?'✓':'필요'}</span>`).join('')}${g===mg?'<span class="tag a">우리 조</span>':''}</span></div>
-    ${groups[g].map(id=>{const rv=(answers[id]&&Array.isArray(answers[id].revisit))?answers[id].revisit:[];return `<div class="mem">${av(id)}<div><b>${esc(nick(id))}</b> <small style="display:inline">${ROLE[role(id)]||''}</small><div class="picks">${rv.length?'다시 볼 곳: '+rv.map(r=>esc(r.name)).join(', '):'다시 볼 부스 아직 없음'}</div></div></div>`}).join('')}</div>`).join('')}</div>
-    <p class="note" style="margin-top:12px">${esc(nick(groups.by))}님이 ${hm(groups.at)}에 편성 · 재방문 단계에서 우리 조 부스 목록이 자동으로 만들어져요.</p>`;
+  $('#shuffle').hidden=!isOwner;$('#resetG').hidden=!isOwner||!has;
+  if(!shufSure)$('#shuffle').textContent=has?'🎲 다시 뽑기':'🎲 랜덤 조 뽑기';
+  const ids=joined(),nd=ids.filter(i=>role(i)==='d').length,nf=ids.filter(i=>role(i)==='f').length,k=Math.min(nd,nf,3);
+  if(!has){$('#groups').innerHTML=`<div class="ctr glass"><div style="font-size:44px;line-height:1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif">🎲</div><h3>아직 공개 전이에요</h3><p class="sub">입장한 ${ids.length}명 · 디자이너 ${nd} · 개발자 ${nf}</p><p class="note">${k?(isOwner?`"랜덤 조 뽑기"를 누르면 ${k}개 조가 모두의 화면에 동시에 공개돼요.`:'점심 자리에서 진행자가 뽑으면 여기에 바로 공개돼요.'):'디자이너와 개발자가 각각 1명 이상 입장해야 뽑을 수 있어요.'}</p></div>`;return}
+  $('#groups').innerHTML=groupsHtml(mg);
+}
+function groupsHtml(mg,spin){
+  return `<div class="groups">${GN.filter(g=>Array.isArray(groups[g])&&groups[g].length).map(g=>`<div class="grp glass ${!spin&&g===mg?'mine':''}" data-gc="${g}"><div class="row" style="justify-content:space-between"><span class="gname">${g}조</span><span class="row" style="gap:6px">${spin?'':['d','f'].map(r=>`<span class="tag ${groups[g].some(i=>role(i)===r)?'ok':'miss'}">${ROLE[r]} ${groups[g].some(i=>role(i)===r)?'✓':'필요'}</span>`).join('')}${!spin&&g===mg?'<span class="tag a">우리 조</span>':''}</span></div>
+    ${groups[g].map(id=>{const rv=(answers[id]&&Array.isArray(answers[id].revisit))?answers[id].revisit:[];return `<div class="mem" data-final="${esc(id)}">${av(id)}<div><b>${esc(nick(id))}</b> <small style="display:inline">${ROLE[role(id)]||''}</small><div class="picks">${rv.length?'다시 볼 곳: '+rv.map(r=>esc(r.name)).join(', '):'다시 볼 부스 아직 없음'}</div></div></div>`}).join('')}</div>`).join('')}</div>
+    ${spin?'':`<p class="note" style="margin-top:12px">${hm(groups.at)}에 랜덤 공개 · 재방문 단계에서 우리 조 부스 목록이 자동으로 만들어져요.</p>`}`;
+}
+function revealGroups(){
+  const ids=joined();if(!ids.length)return renderLunch();
+  const dur=2600;animUntil=Date.now()+dur+200;
+  $('#groups').innerHTML=groupsHtml('',true);
+  const mems=$$('#groups .mem');mems.forEach(m=>m.classList.add('spin'));
+  const t0=Date.now();
+  const tk=setInterval(()=>{const el=Date.now()-t0;
+    mems.forEach((m,i)=>{const stop=900+i*(dur-900)/Math.max(1,mems.length);
+      if(el<stop){const r=ids[Math.floor(Math.random()*ids.length)];m.querySelector('b').textContent=nick(r);const a=m.querySelector('.av');a.textContent=nick(r).slice(0,1);a.className='av '+role(r)}
+      else if(m.classList.contains('spin')){const id=m.dataset.final;m.classList.remove('spin');m.classList.add('land');m.querySelector('b').textContent=nick(id);const a=m.querySelector('.av');a.textContent=nick(id).slice(0,1);a.className='av '+role(id)}});
+    if(el>dur){clearInterval(tk);animUntil=0;renderLunch();const g=myGroup();if(g)toast(`우리 조는 ${g}조!`)}},70);
 }
 let shufSure=false;
 $('#shuffle').addEventListener('click',()=>{
-  if(!db||!me)return;const has=GN.some(g=>Array.isArray(groups[g])&&groups[g].length);
-  if(has&&!shufSure){shufSure=true;$('#shuffle').textContent='정말 다시 섞을까요?';setTimeout(()=>{shufSure=false;renderLunch()},3000);return}shufSure=false;
+  if(!db||!me||!isOwner)return;const has=GN.some(g=>Array.isArray(groups[g])&&groups[g].length);
+  if(has&&!shufSure){shufSure=true;$('#shuffle').textContent='정말 다시 뽑을까요?';setTimeout(()=>{shufSure=false;renderLunch()},3000);return}shufSure=false;
   const ids=Object.keys(members).filter(id=>members[id].nick),ds=ids.filter(i=>role(i)==='d'),fs=ids.filter(i=>role(i)==='f');
   if(!ds.length||!fs.length){toast('디자이너와 개발자가 각각 1명 이상 있어야 편성할 수 있어요');return}
   const mix=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -433,7 +454,7 @@ $('#shuffle').addEventListener('click',()=>{
   mix(fs).forEach((id,i)=>gs[i%k].push(id));
   ids.filter(i=>role(i)!=='d'&&role(i)!=='f').forEach(id=>{gs.reduce((m,g)=>g.length<m.length?g:m,gs[0]).push(id)});
   const body={at:Date.now(),by:me};GN.forEach((g,i)=>body[g]=gs[i]||[]);
-  q('groups',()=>db.doc('meta/groups').set(body));toast('조를 편성했어요');
+  q('groups',()=>db.doc('meta/groups').set(body));
 });
 
 /* revisit */
@@ -529,6 +550,9 @@ document.addEventListener('click',async e=>{
 });
 $('#lb').addEventListener('click',()=>$('#lb').classList.remove('show'));addEventListener('keydown',e=>{if(e.key==='Escape')$('#lb').classList.remove('show')});
 
+let resetSure=false;
+$('#resetG').addEventListener('click',()=>{if(!db||!isOwner)return;if(!resetSure){resetSure=true;$('#resetG').textContent='정말 초기화?';setTimeout(()=>{resetSure=false;$('#resetG').textContent='조 초기화'},3000);return}
+  resetSure=false;$('#resetG').textContent='조 초기화';q('groups',()=>db.doc('meta/groups').set({at:Date.now(),by:me}));toast('조를 초기화했어요')});
 /* coffee + lunch menu */
 const joined=()=>Object.keys(members).filter(i=>members[i]&&members[i].nick);
 function saveMember(patch){if(!db||!me||!members[me])return;const next={...members[me],...patch};delete next.id;members[me]=next;renderCoffee();renderMenu();q('m',()=>db.doc('members/'+me).set(next))}
@@ -595,7 +619,7 @@ go(location.hash.slice(1)||STAGES[0][0]);renderAll();
   db.collection('members').onSnapshot(s=>{members=docs(s);if(!membersLoaded){membersLoaded=true;const m=members[me];if(!m||!m.nick||!m.role)openOb()}renderAll()});
   db.collection('answers').onSnapshot(s=>{answers=docs(s);if(answers[me]&&!lastSaved)lastSaved=JSON.stringify({a:answers[me].a||{},revisit:answers[me].revisit||[]});renderAm();renderLunch();renderRevisit();renderEnd()});
   db.doc('meta/state').onSnapshot(d=>{const prev=meta.stage;meta=d.exists?d.data():{};if(!metaSeen){metaSeen=true;if(!location.hash&&meta.stage)go(meta.stage,true)}else if(meta.stage&&meta.stage!==prev&&meta.stage!==view){go(meta.stage,true);const s=STAGES.find(x=>x[0]===meta.stage);toast(`다음 단계: ${s?s[2]:''}`)}renderJr()});
-  db.doc('meta/groups').onSnapshot(d=>{groups=d.exists?d.data():{};renderLunch();renderRevisit();renderEnd()});
+  db.doc('meta/groups').onSnapshot(d=>{const prev=gAt;groups=d.exists?d.data():{};gAt=groups.at||0;const has=GN.some(g=>Array.isArray(groups[g])&&groups[g].length);if(prev!==null&&gAt!==prev&&has)revealGroups();else renderLunch();renderRevisit();renderEnd()});
   db.collection('gstate').onSnapshot(s=>{gstate=docs(s);renderRevisit()});
   db.collection('notes').orderBy('createdAt','desc').onSnapshot(s=>{notes=s.docs.map(d=>({id:d.id,...d.data()}));renderRevisit();renderSolo();renderEnd()});
 })();
