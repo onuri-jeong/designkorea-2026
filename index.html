@@ -190,6 +190,18 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .mem.spin b{color:var(--sub)}.mem.spin .av{opacity:.6}
 .mem.land{animation:land .35s cubic-bezier(.2,.9,.3,1.4)}
 @keyframes land{from{transform:scale(.92);opacity:.4}to{transform:none;opacity:1}}
+.roles .adm{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--sub)}
+.roles .perf{display:block;border-top:1.5px dashed var(--line);margin:0 -16px;position:relative}
+.roles .perf::before,.roles .perf::after{content:"";position:absolute;top:-7px;width:12px;height:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.roles .perf::before{left:-6px}.roles .perf::after{right:-6px}
+.roles button{gap:12px}
+.ticket{display:grid;grid-template-columns:86px minmax(0,1fr);background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.06),0 10px 28px rgba(0,0,0,.08);min-height:120px}
+.ticket .stub{background:var(--lime);display:grid;place-items:center;border-right:2px dashed rgba(0,0,0,.25)}
+.ticket .stub .ic{font-size:38px;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.ticket .tbody{padding:16px 18px;display:grid;align-content:center;gap:4px}
+.ticket small{font-size:11px;font-weight:700;color:var(--sub)}
+.ticket b{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.15;overflow-wrap:anywhere}
+.ticket #tkRole{font-size:13px;font-weight:700}
 /* square everything */
 *,*::before,*::after{border-radius:0!important}
 input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
@@ -299,18 +311,19 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
   <div class="obtop"><div class="wrap"><div class="brand">DESIGN<br>KOREA 2026<span>팀 관람 여정 · 11.26 목 · COEX HALL B</span></div></div></div>
   <div class="wrap obc">
     <div id="ob1" style="display:grid;gap:16px">
-      <h1 style="font-size:30px">오늘 어떤 시선으로<br>볼까요?</h1>
+      <h1 style="font-size:30px">입장권을<br>골라 주세요 🎟️</h1>
       <div class="roles" id="roles">
-        <button data-r="d"><span class="ic" aria-hidden="true">🎨</span><div><b>디자이너</b><span>표현 · 위계 · 톤</span></div></button>
-        <button data-r="f"><span class="ic" aria-hidden="true">🧑‍💻</span><div><b>개발자</b><span>구현 · 상태 · 성능</span></div></button>
+        <button data-r="d"><small class="adm">ADMIT ONE</small><span class="ic" aria-hidden="true">🎨</span><i class="perf"></i><div><b>디자이너</b><span>표현 · 위계 · 톤</span></div></button>
+        <button data-r="f"><small class="adm">ADMIT ONE</small><span class="ic" aria-hidden="true">🧑‍💻</span><i class="perf"></i><div><b>개발자</b><span>구현 · 상태 · 성능</span></div></button>
       </div>
       <div class="obbar"><div class="wrap"><button class="cta" id="obNext" disabled>다음</button></div></div>
     </div>
     <div id="ob2" style="display:none;gap:16px">
-      <h1 style="font-size:30px">닉네임을<br>정해 주세요</h1>
-      <p class="sub">보드에서 이 이름으로 보여요. 다른 기기에서도 같은 닉네임이면 이어서 할 수 있어요.</p>
+      <h1 style="font-size:30px">입장권에<br>이름을 적어 주세요 ✍️</h1>
+      <div class="ticket" aria-hidden="true"><div class="stub"><span class="ic" id="tkIc">🎟️</span></div><div class="tbody"><small>DESIGN KOREA 2026 · 11.26 · COEX HALL B</small><b id="tkName">이름</b><span id="tkRole"></span></div></div>
+      <p class="sub">이 닉네임으로 보드에 표시돼요. 다른 기기에서도 같은 닉네임이면 이어서 할 수 있어요.</p>
       <input type="text" id="nickIn" maxlength="12" placeholder="예: 픽셀장인">
-      <div class="obbar"><div class="wrap"><button class="cta ghost" id="obBack" aria-label="이전">←</button><button class="cta" id="obGo" disabled>여정 시작</button></div></div>
+      <div class="obbar"><div class="wrap"><button class="cta ghost" id="obBack" aria-label="이전">←</button><button class="cta" id="obGo" disabled>입장하기 🎟️</button></div></div>
     </div>
   </div>
 </div>
@@ -375,13 +388,14 @@ let obRole='';
 function openOb(){const m=members[me]||{};obRole=m.role||'';$('#nickIn').value=m.nick||'';$('#obGo').disabled=!$('#nickIn').value.trim();paintRoles();$('#ob1').style.display='grid';$('#ob2').style.display='none';$('#ob').hidden=false}
 function paintRoles(){$$('#roles button').forEach(b=>b.classList.toggle('on',b.dataset.r===obRole));$('#obNext').disabled=!obRole}
 $('#roles').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(b){obRole=b.dataset.r;paintRoles()}});
-$('#obNext').addEventListener('click',()=>{$('#ob1').style.display='none';$('#ob2').style.display='grid';setTimeout(()=>$('#nickIn').focus(),30)});
+$('#obNext').addEventListener('click',()=>{paintTk();$('#ob1').style.display='none';$('#ob2').style.display='grid';setTimeout(()=>$('#nickIn').focus(),30)});
 $('#obBack').addEventListener('click',()=>{$('#ob2').style.display='none';$('#ob1').style.display='grid'});
 const obGo=()=>{const n=$('#nickIn').value.trim();if(!n){toast('닉네임을 입력해 주세요');return}if(!db||!me){toast('보드에 연결되지 않았어요');return}
   const twin=Object.keys(members).find(id=>id!==me&&members[id].nick===n&&!(members[me]&&members[me].nick));if(twin){me=twin;try{localStorage.setItem('dk_uid',twin)}catch(e){}lastSaved='';amFor=null;toast('기존 닉네임으로 이어서 할게요')}
   const next={...(members[me]||{}),role:obRole,nick:n,at:Date.now()};members[me]=next;$('#ob').hidden=true;renderAll();
   q('m',()=>db.doc('members/'+me).set(next))};
-$('#obGo').addEventListener('click',obGo);$('#nickIn').addEventListener('input',()=>{$('#obGo').disabled=!$('#nickIn').value.trim()});$('#nickIn').addEventListener('keydown',e=>{if(e.key==='Enter')obGo()});
+$('#obGo').addEventListener('click',obGo);const paintTk=()=>{$('#tkName').textContent=$('#nickIn').value.trim()||'이름';$('#tkIc').textContent=obRole==='d'?'🎨':obRole==='f'?'🧑‍💻':'🎟️';$('#tkRole').textContent=obRole?ROLE[obRole]+' 입장권':''};
+$('#nickIn').addEventListener('input',()=>{$('#obGo').disabled=!$('#nickIn').value.trim();paintTk()});$('#nickIn').addEventListener('keydown',e=>{if(e.key==='Enter')obGo()});
 $('#meChip').addEventListener('click',()=>{if(me)openOb()});
 function renderMe(){const m=members[me];$('#meNick').textContent=m&&m.nick?`${m.nick} · ${ROLE[m.role]||''}`:'입장 전';$('#meAv').className='av '+(m?m.role||'':'');$('#meAv').textContent=m&&m.nick?m.nick.slice(0,1):'?'}
 
