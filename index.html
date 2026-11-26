@@ -283,13 +283,13 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 </section>
 
 <section data-v="solo">
-  <div class="shead"><p class="eyebrow"><b></b>오후 · 자유</p><h1>각자 관람</h1><p class="lead">자유롭게 둘러보면서 눈에 띈 것, 우리 일에 가져가 보면 좋을 것을 가볍게 남겨요. 한 줄이어도 좋아요.</p></div>
+  <div class="shead"><p class="eyebrow"><b></b>관람 후</p><h1>관람 후<br>느낀 점</h1><p class="lead">오늘 둘러보며 느낀 점을 자유롭게 남겨요. 우리 일에 가져가 보고 싶은 게 있다면 같이 적어 주세요. 한 줄이어도 좋아요.</p></div>
   <div class="host" data-host="solo"></div>
     <form class="comp glass" id="soComp" autocomplete="off">
     <label class="drop" id="soDrop"><input type="file" accept="image/*" hidden><span class="dt"><span class="plus">+</span>사진</span><button type="button" class="x" aria-label="사진 빼기">✕</button></label>
     <div class="f">
-      <input type="text" id="soTitle" maxlength="60" placeholder="어디서 봤어요? (선택)">
-      <textarea id="soText" maxlength="1000" placeholder="인상 깊었던 점 · 얻은 인사이트"></textarea>
+      <input type="text" id="soTitle" maxlength="60" placeholder="기억에 남는 부스 (선택)">
+      <textarea id="soText" maxlength="1000" placeholder="관람하면서 느낀 점"></textarea>
       <textarea id="soApply" maxlength="600" placeholder="우리 일에 적용해 보면 좋을 것 (선택)" style="min-height:64px"></textarea>
       <div class="chips" id="soMission"></div>
       <button class="btn">올리기</button>
@@ -345,7 +345,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 const SB_URL='https://ldlqxjpgkvqwhuzxsiqm.supabase.co',SB_KEY='sb_publishable_h-I0hoiMFDi841U8XDyY2A_3ZHiswmU';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const STAGES=[['coffee','10:30 전','커피','아침 커피 고르기'],['am','10:30–12:00','오전','다 같이 둘러보며 질문에 답하기'],['menu','12:00 전','점심 메뉴','식당 투표'],['lunch','점심','조 편성','디자이너+개발자 혼합 조'],['revisit','오후 · 1시간','재방문','조원들이 고른 부스 다시 보기'],['solo','오후 · 자유','각자 관람','가볍게 인사이트 남기기'],['end','해산 전','마무리','오늘 모은 것 · 한 줄 소감']];
+const STAGES=[['coffee','10:30 전','커피','아침 커피 고르기'],['am','10:30–12:00','오전','다 같이 둘러보며 질문에 답하기'],['menu','12:00 전','점심 메뉴','식당 투표'],['lunch','점심','조 편성','디자이너+개발자 혼합 조'],['revisit','오후 · 1시간','재방문','조원들이 고른 부스 다시 보기'],['solo','관람 후','느낀 점','관람 후 느낀 점 남기기'],['end','해산 전','마무리','오늘 모은 것 · 한 줄 소감']];
 const COFFEE=[['hot','뜨아','☕','따뜻하게'],['ice','아아','🧊','시원하게'],['etc','기타','🥤','직접 적기']];
 const LUNCH=[['shabu','샤브촌by계백집 코엑스몰점','🍲','샤브샤브'],['nippong','니뽕내뽕 코엑스점','🍝','짬뽕'],['soi','소이연남 코엑스점','🍜','태국식 쌀국수']];
 const QS=[
@@ -523,7 +523,7 @@ function tick(){const st=gstate[rvView]||{},s=Number(st.startAt)||0,pa=Number(st
   const left=Math.max(0,s+3600000+(Number(st.pausedTotal)||0)-(pa||Date.now())),m=Math.floor(left/60000),sec=Math.floor(left%60000/1000);
   pb.hidden=pb.dataset.own!=='1'||!left;pb.textContent=pa?'▶ 계속':'⏸ 일시정지';
   $('#tmBig').textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');$('#tmBig').classList.toggle('paused',!!pa);$('#tmLabel').textContent=`${rvView}조 · ${hm(s)} 시작`;
-  $('#tmNote').textContent=!left?'시간 끝! 각자 관람으로 넘어가요':pa?'일시정지됨 — 조원 화면도 같이 멈춰요':''}
+  $('#tmNote').textContent=!left?'시간 끝! 느낀 점 남기러 가요':pa?'일시정지됨 — 조원 화면도 같이 멈춰요':''}
 setInterval(()=>{if(view==='revisit')tick()},1000);
 
 /* photo composer */
@@ -558,15 +558,15 @@ function card(n){const img=safeId(n.img),l=Array.isArray(n.likes)?n.likes:[];
   <div class="meta"><span class="who">${av(n.uid,1)}${esc(nick(n.uid))}</span><span>${hm(n.createdAt)}</span><span class="sp"></span><button class="ib${l.includes(me)?' on':''}" data-like="${esc(n.id)}">♥ ${l.length}</button>${n.uid===me||isOwner?`<button class="ib" data-del="${esc(n.id)}">삭제</button>`:''}</div></div></article>`}
 function renderSolo(){const list=notes.filter(n=>n.kind==='solo'&&(soF==='all'||(soF==='me'?n.uid===me:role(n.uid)===soF)));
   const mineN=notes.filter(n=>n.kind==='solo'&&n.uid===me).length;
-  $('#soFeed').innerHTML=list.length?list.map(card).join(''):`<div class="empty">${notes.some(n=>n.kind==='solo')?'조건에 맞는 카드가 없어요.':'첫 인사이트 카드를 올려 주세요!'}</div>`;
+  $('#soFeed').innerHTML=list.length?list.map(card).join(''):`<div class="empty">${notes.some(n=>n.kind==='solo')?'조건에 맞는 카드가 없어요.':'첫 느낀 점을 남겨 주세요!'}</div>`;
   $('#soComp .btn:last-child').textContent=mineN?`올리기 · 지금까지 ${Math.min(mineN,99)}개`:'올리기'}
 
 /* end */
 function renderEnd(){const ids=joined();
   const ac=Object.values(answers).reduce((s,v)=>s+Object.keys((v&&v.a)||{}).length,0);
-  const st=[['오전 답변',ac],['재방문 시선',notes.filter(n=>n.kind==='revisit').length],['인사이트 카드',notes.filter(n=>n.kind==='solo').length],['사진',notes.filter(n=>safeId(n.img)).length]];
+  const st=[['오전 답변',ac],['재방문 시선',notes.filter(n=>n.kind==='revisit').length],['느낀 점',notes.filter(n=>n.kind==='solo').length],['사진',notes.filter(n=>safeId(n.img)).length]];
   $('#stats').innerHTML=st.map(([l,v])=>`<div class="stat glass"><span class="note">${l}</span><b>${v}</b></div>`).join('');
-  $('#people').innerHTML=ids.map(id=>{const m=members[id],c=notes.filter(n=>n.kind==='solo'&&n.uid===id).length;return `<div class="person glass"><div class="row">${av(id)}<div><b>${esc(m.nick)}</b><div class="note">${ROLE[m.role]||''} · 카드 ${c}장${myGroup()&&groups[myGroup()]?.includes(id)?' · 우리 조':''}</div></div></div><p class="bye">${m.bye?esc(m.bye):'<span class="note">소감 대기 중…</span>'}</p></div>`}).join('');
+  $('#people').innerHTML=ids.map(id=>{const m=members[id],c=notes.filter(n=>n.kind==='solo'&&n.uid===id).length;return `<div class="person glass"><div class="row">${av(id)}<div><b>${esc(m.nick)}</b><div class="note">${ROLE[m.role]||''} · 느낀 점 ${c}개${myGroup()&&groups[myGroup()]?.includes(id)?' · 우리 조':''}</div></div></div><p class="bye">${m.bye?esc(m.bye):'<span class="note">소감 대기 중…</span>'}</p></div>`}).join('');
   const bi=$('#byeIn');if(document.activeElement!==bi)bi.value=(members[me]&&members[me].bye)||'';
   const top=notes.filter(n=>n.kind==='solo'&&Array.isArray(n.likes)&&n.likes.length).sort((a,b)=>b.likes.length-a.likes.length).slice(0,6);
   $('#topFeed').innerHTML=top.length?top.map(card).join(''):'<div class="empty">아직 ♥를 받은 카드가 없어요.</div>'}
