@@ -206,6 +206,8 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .mgr h3 .note{font-weight:600;margin-left:6px}
 .mlist{display:grid}.mrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}.mrow:first-child{border-top:0}
 .mrow small{color:var(--sub);font-size:12.5px;margin-left:4px}.mrow.off{opacity:.45}.mrow.off b{text-decoration:line-through}
+.timer .big.paused{color:#fff;opacity:.55}
+#tmStart.sec{background:transparent;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
 /* square everything */
 *,*::before,*::after{border-radius:0!important}
 input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
@@ -265,7 +267,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
     <div class="seg" id="gSeg"></div></div>
   <div class="host" data-host="revisit"></div>
   <div class="rvtop">
-    <div class="timer glass"><p class="note" id="tmLabel">1시간 타이머</p><div class="big" id="tmBig">60:00</div><div class="row"><button class="btn sm" id="tmStart">시작</button><span class="note" id="tmNote"></span></div></div>
+    <div class="timer glass"><p class="note" id="tmLabel">1시간 타이머</p><div class="big" id="tmBig">60:00</div><div class="row"><button class="btn sm" id="tmPause" hidden>⏸ 일시정지</button><button class="btn sm" id="tmStart">시작</button><span class="note" id="tmNote"></span></div></div>
     <form class="comp glass" id="rvComp" autocomplete="off">
       <label class="drop" id="rvDrop"><input type="file" accept="image/*" hidden><span class="dt"><span class="plus">+</span>사진</span><button type="button" class="x" aria-label="사진 빼기">✕</button></label>
       <div class="f">
@@ -496,7 +498,7 @@ function renderRevisit(){
   const mg=myGroup(),avail=GN.filter(g=>Array.isArray(groups[g])&&groups[g].length);
   if(!rvView||!avail.includes(rvView))rvView=mg||avail[0]||'';
   $('#gSeg').innerHTML=avail.map(g=>`<button data-g="${g}" class="${g===rvView?'on':''}">${g}조${g===mg?' (우리)':''}</button>`).join('');
-  $('#rvComp').hidden=!mg||rvView!==mg;$('#tmStart').hidden=!mg||rvView!==mg;
+  $('#rvComp').hidden=!mg||rvView!==mg;$('#tmStart').hidden=!mg||rvView!==mg;$('#tmPause').dataset.own=(mg&&rvView===mg)?'1':'';
   if(!rvView){$('#booths').innerHTML='<div class="empty">점심 때 조를 먼저 편성해 주세요.</div>';$('#rvList').innerHTML='';tick();return}
   const list=boothList(rvView),st=gstate[rvView]||{},done=st.done&&typeof st.done==='object'?st.done:{};
   $('#rvList').innerHTML=list.map(b=>`<option value="${esc(b.name)}">`).join('');
@@ -512,12 +514,16 @@ $('#booths').addEventListener('change',e=>{const c=e.target.closest('[data-done]
   const cur={...(gstate[g]||{})};delete cur.id;cur.done={...(cur.done||{}),[c.dataset.done]:c.checked};gstate[g]={...cur};q('g'+g,()=>db.doc('gstate/'+g).set(cur))});
 $('#tmStart').addEventListener('click',()=>{const g=myGroup();if(!g||!db)return;const cur={...(gstate[g]||{})};delete cur.id;
   if(cur.startAt&&$('#tmStart').dataset.sure!=='1'){$('#tmStart').dataset.sure='1';$('#tmStart').textContent='다시 시작?';setTimeout(()=>{$('#tmStart').dataset.sure='';tick()},3000);return}
-  $('#tmStart').dataset.sure='';cur.startAt=Date.now();gstate[g]={...cur};tick();q('g'+g,()=>db.doc('gstate/'+g).set(cur))});
-function tick(){const st=gstate[rvView]||{},s=Number(st.startAt)||0;const b=$('#tmStart');if(b.dataset.sure!=='1')b.textContent=s?'다시 시작':'시작';
-  if(!s){$('#tmBig').textContent='60:00';$('#tmNote').textContent=rvView?'조원 누구든 시작하면 같이 흘러가요':'';$('#tmLabel').textContent='1시간 타이머';return}
-  const left=Math.max(0,s+3600000-Date.now()),m=Math.floor(left/60000),sec=Math.floor(left%60000/1000);
-  $('#tmBig').textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');$('#tmLabel').textContent=`${rvView}조 · ${hm(s)} 시작`;
-  $('#tmNote').textContent=left?'':'시간 끝! 각자 관람으로 넘어가요'}
+  $('#tmStart').dataset.sure='';cur.startAt=Date.now();delete cur.pausedAt;delete cur.pausedTotal;gstate[g]={...cur};tick();q('g'+g,()=>db.doc('gstate/'+g).set(cur))});
+$('#tmPause').addEventListener('click',()=>{const g=myGroup();if(!g||!db)return;const cur={...(gstate[g]||{})};delete cur.id;if(!cur.startAt)return;
+  if(cur.pausedAt){cur.pausedTotal=(Number(cur.pausedTotal)||0)+(Date.now()-cur.pausedAt);delete cur.pausedAt}else cur.pausedAt=Date.now();
+  gstate[g]={...cur};tick();q('g'+g,()=>db.doc('gstate/'+g).set(cur))});
+function tick(){const st=gstate[rvView]||{},s=Number(st.startAt)||0,pa=Number(st.pausedAt)||0;const b=$('#tmStart'),pb=$('#tmPause');if(b.dataset.sure!=='1')b.textContent=s?'다시 시작':'시작';b.classList.toggle('sec',!!s);
+  if(!s){pb.hidden=true;$('#tmBig').textContent='60:00';$('#tmNote').textContent=rvView?'조원 누구든 시작하면 같이 흘러가요':'';$('#tmLabel').textContent='1시간 타이머';$('#tmBig').classList.remove('paused');return}
+  const left=Math.max(0,s+3600000+(Number(st.pausedTotal)||0)-(pa||Date.now())),m=Math.floor(left/60000),sec=Math.floor(left%60000/1000);
+  pb.hidden=pb.dataset.own!=='1'||!left;pb.textContent=pa?'▶ 계속':'⏸ 일시정지';
+  $('#tmBig').textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');$('#tmBig').classList.toggle('paused',!!pa);$('#tmLabel').textContent=`${rvView}조 · ${hm(s)} 시작`;
+  $('#tmNote').textContent=!left?'시간 끝! 각자 관람으로 넘어가요':pa?'일시정지됨 — 조원 화면도 같이 멈춰요':''}
 setInterval(()=>{if(view==='revisit')tick()},1000);
 
 /* photo composer */
