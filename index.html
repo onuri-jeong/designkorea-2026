@@ -208,6 +208,8 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .mrow small{color:var(--sub);font-size:12.5px;margin-left:4px}.mrow.off{opacity:.45}.mrow.off b{text-decoration:line-through}
 .timer .big.paused{color:#fff;opacity:.55}
 #tmStart.sec{background:transparent;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.phw{position:relative}
+.phx{position:absolute;top:8px;right:8px;border:0;font:inherit;font-size:12.5px;font-weight:700;background:rgba(0,0,0,.65);color:#fff;padding:6px 10px;min-height:32px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 /* square everything */
 *,*::before,*::after{border-radius:0!important}
 input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
@@ -505,7 +507,7 @@ function renderRevisit(){
   $('#booths').innerHTML=list.length?list.map(b=>{const vs=notes.filter(n=>n.kind==='revisit'&&n.group===rvView&&key(n.booth)===b.k);
     return `<div class="booth glass ${done[b.k]?'done':''}"><div class="bh"><input type="checkbox" data-done="${esc(b.k)}" ${done[b.k]?'checked':''} ${rvView===mg?'':'disabled'} aria-label="방문 완료"><h3>${esc(b.name)}</h3><span class="tag">${vs.length}개 시선</span></div>
       ${b.wants.length?`<div class="wants">${b.wants.map(w=>`<div>${av(w.id,1)}<b>${esc(nick(w.id))}</b><span class="note">${esc(w.why||'다시 보고 싶어요')}</span></div>`).join('')}</div>`:''}
-      ${vs.length?`<div class="views">${vs.map(v=>{const img=safeId(v.img);return `<div class="vw">${img?`<button class="ph" data-img="${img}"><img src="${imgUrl(img)}" loading="lazy" alt=""></button>`:''}<div class="vb"><div class="row" style="gap:6px;margin-bottom:4px">${av(v.uid,1)}<b style="font-size:13px">${esc(nick(v.uid))}</b><span class="note">${hm(v.createdAt)}</span>${v.uid===me||isOwner?`<button class="ib" data-del="${esc(v.id)}" style="margin-left:auto">삭제</button>`:''}</div><p>${esc(v.text)}</p></div></div>`}).join('')}</div>`:''}</div>`}).join('')
+      ${vs.length?`<div class="views">${vs.map(v=>{const img=safeId(v.img);return `<div class="vw">${img?`<div class="phw"><button class="ph" data-img="${img}"><img src="${imgUrl(img)}" loading="lazy" alt=""></button>${v.uid===me||isOwner?`<button class="phx" data-delimg="${esc(v.id)}">사진 삭제</button>`:''}</div>`:''}<div class="vb"><div class="row" style="gap:6px;margin-bottom:4px">${av(v.uid,1)}<b style="font-size:13px">${esc(nick(v.uid))}</b><span class="note">${hm(v.createdAt)}</span>${v.uid===me||isOwner?`<button class="ib" data-del="${esc(v.id)}" style="margin-left:auto">삭제</button>`:''}</div><p>${esc(v.text)}</p></div></div>`}).join('')}</div>`:''}</div>`}).join('')
     :'<div class="empty">이 조원들이 오전에 고른 부스가 없어요. 위 입력창에 부스 이름을 직접 적어 시작해도 돼요.</div>';
   tick();
 }
@@ -553,7 +555,7 @@ $('#soComp').addEventListener('submit',e=>{e.preventDefault();const title=$('#so
   if(!title&&!text&&!soP.file){toast('사진이나 메모를 하나는 넣어 주세요');return}
   post(e.target,{kind:'solo',title,text,apply,mission:soM},soP,()=>{$('#soTitle').value=$('#soText').value=$('#soApply').value='';soM='';renderMissions()})});
 function card(n){const img=safeId(n.img),l=Array.isArray(n.likes)?n.likes:[];
-  return `<article class="post">${img?`<button class="ph" data-img="${img}" aria-label="사진 크게 보기"><img src="${imgUrl(img)}" loading="lazy" alt=""></button>`:''}<div class="pb">
+  return `<article class="post">${img?`<div class="phw"><button class="ph" data-img="${img}" aria-label="사진 크게 보기"><img src="${imgUrl(img)}" loading="lazy" alt=""></button>${n.uid===me||isOwner?`<button class="phx" data-delimg="${esc(n.id)}">사진 삭제</button>`:''}</div>`:''}<div class="pb">
   <div class="row" style="gap:5px">${n.mission?`<span class="tag ${role(n.uid)}">${esc(n.mission)}</span>`:''}</div>
   ${n.title?`<h3>${esc(n.title)}</h3>`:''}${n.text?`<p class="memo">${esc(n.text)}</p>`:''}${n.apply?`<div class="apply"><b>우리 제품에 적용</b><p>${esc(n.apply)}</p></div>`:''}
   <div class="meta"><span class="who">${av(n.uid,1)}${esc(nick(n.uid))}</span><span>${hm(n.createdAt)}</span><span class="sp"></span><button class="ib${l.includes(me)?' on':''}" data-like="${esc(n.id)}">♥ ${l.length}</button>${n.uid===me||isOwner?`<button class="ib" data-del="${esc(n.id)}">삭제</button>`:''}</div></div></article>`}
@@ -579,6 +581,9 @@ document.addEventListener('click',async e=>{
   const ph=e.target.closest('[data-img]');if(ph){$('#lbImg').src=imgUrl(ph.dataset.img);$('#lb').classList.add('show');return}
   const lk=e.target.closest('[data-like]');if(lk&&db&&me){const id=lk.dataset.like,n=notes.find(x=>x.id===id);if(!n||pend[id])return;const l=Array.isArray(n.likes)?[...n.likes]:[];const i=l.indexOf(me);i<0?l.push(me):l.splice(i,1);
     pend[id]=1;try{await db.doc('notes/'+id).update({likes:l})}catch(err){toast(errMsg(err))}delete pend[id];return}
+  const di=e.target.closest('[data-delimg]');if(di&&db){if(di.dataset.sure!=='1'){di.dataset.sure='1';di.textContent='정말 삭제?';setTimeout(()=>{if(di.isConnected){di.dataset.sure='';di.textContent='사진 삭제'}},3000);return}
+    const id=di.dataset.delimg,n=notes.find(x=>x.id===id),img=safeId(n&&n.img);if(!n)return;
+    try{await db.doc('notes/'+id).update({img:''});if(img&&assets)assets.delete(img).catch(()=>{});toast('사진을 삭제했어요')}catch(err){toast(errMsg(err))}return}
   const dl=e.target.closest('[data-del]');if(dl&&db){if(dl.dataset.sure!=='1'){dl.dataset.sure='1';dl.textContent='정말?';setTimeout(()=>{if(dl.isConnected){dl.dataset.sure='';dl.textContent='삭제'}},3000);return}
     const id=dl.dataset.del,n=notes.find(x=>x.id===id);try{await db.doc('notes/'+id).delete();const img=safeId(n&&n.img);if(img&&assets)assets.delete(img).catch(()=>{});toast('삭제했어요')}catch(err){toast(errMsg(err))}}
 });
