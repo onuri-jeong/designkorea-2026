@@ -283,15 +283,14 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 </section>
 
 <section data-v="solo">
-  <div class="shead"><p class="eyebrow"><b></b>오후 · 자유</p><h1>각자 관람</h1><p class="lead">AI를 어떻게 팔고, 일하는 방식을 어떻게 바꾸는지. 사진 + 관찰 + 우리 제품에 적용할 점으로 인사이트 카드 1인 3장이 목표예요.</p></div>
+  <div class="shead"><p class="eyebrow"><b></b>오후 · 자유</p><h1>각자 관람</h1><p class="lead">자유롭게 둘러보면서 눈에 띈 것, 우리 일에 가져가 보면 좋을 것을 가볍게 남겨요. 한 줄이어도 좋아요.</p></div>
   <div class="host" data-host="solo"></div>
-  <div class="missions" id="missions"></div>
-  <form class="comp glass" id="soComp" autocomplete="off">
+    <form class="comp glass" id="soComp" autocomplete="off">
     <label class="drop" id="soDrop"><input type="file" accept="image/*" hidden><span class="dt"><span class="plus">+</span>사진</span><button type="button" class="x" aria-label="사진 빼기">✕</button></label>
     <div class="f">
-      <input type="text" id="soTitle" maxlength="60" placeholder="부스 · 작품 이름">
-      <textarea id="soText" maxlength="1000" placeholder="무엇을 봤나요?"></textarea>
-      <textarea id="soApply" maxlength="600" placeholder="우리 AI 프로덕트 · 마케팅에 적용한다면?" style="min-height:64px"></textarea>
+      <input type="text" id="soTitle" maxlength="60" placeholder="어디서 봤어요? (선택)">
+      <textarea id="soText" maxlength="1000" placeholder="인상 깊었던 점 · 얻은 인사이트"></textarea>
+      <textarea id="soApply" maxlength="600" placeholder="우리 일에 적용해 보면 좋을 것 (선택)" style="min-height:64px"></textarea>
       <div class="chips" id="soMission"></div>
       <button class="btn">올리기</button>
     </div>
@@ -346,7 +345,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
 const SB_URL='https://ldlqxjpgkvqwhuzxsiqm.supabase.co',SB_KEY='sb_publishable_h-I0hoiMFDi841U8XDyY2A_3ZHiswmU';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const STAGES=[['coffee','10:30 전','커피','아침 커피 고르기'],['am','10:30–12:00','오전','다 같이 둘러보며 질문에 답하기'],['menu','12:00 전','점심 메뉴','식당 투표'],['lunch','점심','조 편성','디자이너+개발자 혼합 조'],['revisit','오후 · 1시간','재방문','조원들이 고른 부스 다시 보기'],['solo','오후 · 자유','각자 관람','인사이트 카드 1인 3장'],['end','해산 전','마무리','오늘 모은 것 · 한 줄 소감']];
+const STAGES=[['coffee','10:30 전','커피','아침 커피 고르기'],['am','10:30–12:00','오전','다 같이 둘러보며 질문에 답하기'],['menu','12:00 전','점심 메뉴','식당 투표'],['lunch','점심','조 편성','디자이너+개발자 혼합 조'],['revisit','오후 · 1시간','재방문','조원들이 고른 부스 다시 보기'],['solo','오후 · 자유','각자 관람','가볍게 인사이트 남기기'],['end','해산 전','마무리','오늘 모은 것 · 한 줄 소감']];
 const COFFEE=[['hot','뜨아','☕','따뜻하게'],['ice','아아','🧊','시원하게'],['etc','기타','🥤','직접 적기']];
 const LUNCH=[['shabu','샤브촌by계백집 코엑스몰점','🍲','샤브샤브'],['nippong','니뽕내뽕 코엑스점','🍝','짬뽕'],['soi','소이연남 코엑스점','🍜','태국식 쌀국수']];
 const QS=[
@@ -358,8 +357,7 @@ const QS=[
  {id:'ad',r:'d',t:'AI의 작업 상태나 결과물을 보여준 디자인 중 가져오고 싶은 것은?',h:'Agent "생각 중 / 작업 중 / 완료" UX, AI 브랜드 톤 재료로'},
  {id:'af',r:'f',t:'AI 체험 부스는 어떻게 구현했을까요?',h:'실시간 생성 · LLM 연동 · 센서 등 추정 — 우리 제품에 붙인다면?'}
 ];
-const MISSIONS={d:[['AI 표현 방식','캐릭터 · 의인화 · 추상 비주얼 사례 3개'],['AI 카피 수집','설득력 있는 한 줄 → 우리 제품 버전으로'],['신뢰 장치','AI를 믿게 만든 것 vs 불안하게 만든 것'],['AX 스토리텔링','업무 전후를 보여준 방식 → 영상 · 랜딩 재료']],
- f:[['AI 인터랙션 역설계','생성 · 응답 연출의 구현 방식과 난이도'],['AI 체험 관찰','사람들이 막히거나 망설인 순간'],['응답 대기 UX','기다림 · 진행 상태를 어떻게 처리했나'],['AX 데모 구조','실제 업무 흐름을 데모로 묶은 방식']]};
+const LIGHT=[['💡 인사이트'],['🛠 적용해 볼 것'],['👀 눈에 띈 것'],['✨ 아이디어']];const MISSIONS={d:LIGHT,f:LIGHT};
 const ROLE={d:'디자이너',f:'개발자'},GN=['A','B','C'];
 let db=null,user=null,assets=null,me=null,isOwner=false;
 let members={},answers={},meta={},groups={},gstate={},notes=[];
@@ -547,7 +545,6 @@ $('#rvComp').addEventListener('submit',e=>{e.preventDefault();const booth=$('#rv
 
 /* solo */
 function renderMissions(){const r=role(me)||'d';
-  $('#missions').innerHTML=MISSIONS[r].map(([t,d])=>`<div class="mi glass"><h3>${t}</h3>${d}</div>`).join('');
   $('#soMission').innerHTML=MISSIONS[r].map(([t])=>`<button type="button" data-m="${esc(t)}" class="${soM===t?'on':''}">${t}</button>`).join('')}
 $('#soMission').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b){soM=soM===b.dataset.m?'':b.dataset.m;renderMissions()}});
 $('#soFilter').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;soF=b.dataset.k;$$('#soFilter button').forEach(x=>x.classList.toggle('on',x===b));renderSolo()});
@@ -557,12 +554,12 @@ $('#soComp').addEventListener('submit',e=>{e.preventDefault();const title=$('#so
 function card(n){const img=safeId(n.img),l=Array.isArray(n.likes)?n.likes:[];
   return `<article class="post">${img?`<div class="phw"><button class="ph" data-img="${img}" aria-label="사진 크게 보기"><img src="${imgUrl(img)}" loading="lazy" alt=""></button>${n.uid===me||isOwner?`<button class="phx" data-delimg="${esc(n.id)}">사진 삭제</button>`:''}</div>`:''}<div class="pb">
   <div class="row" style="gap:5px">${n.mission?`<span class="tag ${role(n.uid)}">${esc(n.mission)}</span>`:''}</div>
-  ${n.title?`<h3>${esc(n.title)}</h3>`:''}${n.text?`<p class="memo">${esc(n.text)}</p>`:''}${n.apply?`<div class="apply"><b>우리 제품에 적용</b><p>${esc(n.apply)}</p></div>`:''}
+  ${n.title?`<h3>${esc(n.title)}</h3>`:''}${n.text?`<p class="memo">${esc(n.text)}</p>`:''}${n.apply?`<div class="apply"><b>적용해 보면 좋을 것</b><p>${esc(n.apply)}</p></div>`:''}
   <div class="meta"><span class="who">${av(n.uid,1)}${esc(nick(n.uid))}</span><span>${hm(n.createdAt)}</span><span class="sp"></span><button class="ib${l.includes(me)?' on':''}" data-like="${esc(n.id)}">♥ ${l.length}</button>${n.uid===me||isOwner?`<button class="ib" data-del="${esc(n.id)}">삭제</button>`:''}</div></div></article>`}
 function renderSolo(){const list=notes.filter(n=>n.kind==='solo'&&(soF==='all'||(soF==='me'?n.uid===me:role(n.uid)===soF)));
   const mineN=notes.filter(n=>n.kind==='solo'&&n.uid===me).length;
   $('#soFeed').innerHTML=list.length?list.map(card).join(''):`<div class="empty">${notes.some(n=>n.kind==='solo')?'조건에 맞는 카드가 없어요.':'첫 인사이트 카드를 올려 주세요!'}</div>`;
-  $('#soComp .btn:last-child').textContent=`올리기 (${Math.min(mineN,99)}/3)`}
+  $('#soComp .btn:last-child').textContent=mineN?`올리기 · 지금까지 ${Math.min(mineN,99)}개`:'올리기'}
 
 /* end */
 function renderEnd(){const ids=joined();
