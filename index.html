@@ -202,6 +202,10 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .ticket #tkRole{font-size:13px;font-weight:700}
 .resume{display:grid;gap:10px;margin-top:6px}
 .resume .chips button{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06);min-height:38px;padding:6px 14px;font-size:14px}
+.mgr{background:#fff;box-shadow:var(--sh);padding:16px 18px;margin-bottom:14px;display:grid;gap:8px}
+.mgr h3 .note{font-weight:600;margin-left:6px}
+.mlist{display:grid}.mrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}.mrow:first-child{border-top:0}
+.mrow small{color:var(--sub);font-size:12.5px;margin-left:4px}.mrow.off{opacity:.45}.mrow.off b{text-decoration:line-through}
 /* square everything */
 *,*::before,*::after{border-radius:0!important}
 input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
@@ -252,6 +256,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
   <div class="shead"><p class="eyebrow"><b></b>점심</p><h1>조 편성</h1><div class="rule"><b>필수</b><span>각 조에 <strong>디자이너 1명 + 개발자 1명</strong>이 꼭 들어가요</span></div><p class="lead">조는 미리 정해지지 않아요. 점심 자리에서 진행자가 뽑으면 모두의 화면에 동시에 랜덤으로 공개돼요.</p>
     <div class="row"><button class="btn" id="shuffle">🎲 랜덤 조 뽑기</button><button class="btn ghost" id="resetG" hidden>조 초기화</button></div></div>
   <div class="host" data-host="lunch"></div>
+  <div id="mgr"></div>
   <div id="groups"></div>
 </section>
 
@@ -386,8 +391,8 @@ document.addEventListener('click',e=>{const m=e.target.closest('[data-move]');if
 
 /* onboarding */
 let obRole='';
-function openOb(){const ids=Object.keys(members).filter(i=>i!==me&&members[i]&&members[i].nick);
-  $('#resume').hidden=!ids.length||!!(members[me]&&members[me].nick);
+function openOb(){const ids=joined().filter(i=>i!==me);
+  $('#resume').hidden=!ids.length||!!(members[me]&&members[me].nick&&!members[me].hidden);
   $('#resumeList').innerHTML=ids.map(i=>`<button type="button" data-resume="${esc(i)}">${members[i].role==='d'?'🎨':members[i].role==='f'?'🧑‍💻':''} ${esc(members[i].nick)}</button>`).join('');
   const m=members[me]||{};obRole=m.role||'';$('#nickIn').value=m.nick||'';$('#obGo').disabled=!$('#nickIn').value.trim();paintRoles();$('#ob1').style.display='grid';$('#ob2').style.display='none';$('#ob').hidden=false}
 function paintRoles(){$$('#roles button').forEach(b=>b.classList.toggle('on',b.dataset.r===obRole));$('#obNext').disabled=!obRole}
@@ -436,7 +441,10 @@ $('section[data-v="am"]').addEventListener('focusout',e=>{if(e.target.matches('t
 
 /* lunch */
 let gAt=null,animUntil=0;
+function joined(){return Object.keys(members).filter(i=>members[i]&&members[i].nick&&!members[i].hidden)}
 function renderLunch(){
+  if(isOwner){const all=Object.keys(members).filter(i=>members[i]&&members[i].nick);
+    $('#mgr').innerHTML=`<div class="mgr"><h3>참가자 정리 <span class="note">진행자 전용</span></h3><p class="note">같은 사람이 두 번 등록됐다면 하나를 <b>제외</b>하세요. 제외된 이름은 조 뽑기·집계에서 빠져요. 답변 수를 보고 덜 쓴 쪽을 제외하면 돼요.</p><div class="mlist">${all.map(i=>{const a=Object.keys((answers[i]&&answers[i].a)||{}).length,n=notes.filter(x=>x.uid===i).length,hid=!!members[i].hidden;return `<div class="mrow ${hid?'off':''}"><span>${members[i].role==='d'?'🎨':members[i].role==='f'?'🧑‍💻':''} <b>${esc(members[i].nick)}</b> <small>답변 ${a} · 카드 ${n}${i===me?' · 나':''}</small></span><button class="ib" data-hide="${esc(i)}">${hid?'복구':'제외'}</button></div>`}).join('')}</div></div>`}else $('#mgr').innerHTML='';
   if(Date.now()<animUntil)return;
   const has=GN.some(g=>Array.isArray(groups[g])&&groups[g].length),mg=myGroup();
   $('#shuffle').hidden=!isOwner;$('#resetG').hidden=!isOwner||!has;
@@ -466,7 +474,7 @@ let shufSure=false;
 $('#shuffle').addEventListener('click',()=>{
   if(!db||!me||!isOwner)return;const has=GN.some(g=>Array.isArray(groups[g])&&groups[g].length);
   if(has&&!shufSure){shufSure=true;$('#shuffle').textContent='정말 다시 뽑을까요?';setTimeout(()=>{shufSure=false;renderLunch()},3000);return}shufSure=false;
-  const ids=Object.keys(members).filter(id=>members[id].nick),ds=ids.filter(i=>role(i)==='d'),fs=ids.filter(i=>role(i)==='f');
+  const ids=joined(),ds=ids.filter(i=>role(i)==='d'),fs=ids.filter(i=>role(i)==='f');
   if(!ds.length||!fs.length){toast('디자이너와 개발자가 각각 1명 이상 있어야 편성할 수 있어요');return}
   const mix=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
   const k=Math.min(3,ds.length,fs.length),gs=Array.from({length:k},()=>[]);
@@ -549,7 +557,7 @@ function renderSolo(){const list=notes.filter(n=>n.kind==='solo'&&(soF==='all'||
   $('#soComp .btn:last-child').textContent=`올리기 (${Math.min(mineN,99)}/3)`}
 
 /* end */
-function renderEnd(){const ids=Object.keys(members).filter(i=>members[i].nick);
+function renderEnd(){const ids=joined();
   const ac=Object.values(answers).reduce((s,v)=>s+Object.keys((v&&v.a)||{}).length,0);
   const st=[['오전 답변',ac],['재방문 시선',notes.filter(n=>n.kind==='revisit').length],['인사이트 카드',notes.filter(n=>n.kind==='solo').length],['사진',notes.filter(n=>safeId(n.img)).length]];
   $('#stats').innerHTML=st.map(([l,v])=>`<div class="stat glass"><span class="note">${l}</span><b>${v}</b></div>`).join('');
@@ -573,8 +581,10 @@ $('#lb').addEventListener('click',()=>$('#lb').classList.remove('show'));addEven
 let resetSure=false;
 $('#resetG').addEventListener('click',()=>{if(!db||!isOwner)return;if(!resetSure){resetSure=true;$('#resetG').textContent='정말 초기화?';setTimeout(()=>{resetSure=false;$('#resetG').textContent='조 초기화'},3000);return}
   resetSure=false;$('#resetG').textContent='조 초기화';q('groups',()=>db.doc('meta/groups').set({at:Date.now(),by:me}));toast('조를 초기화했어요')});
+$('#mgr').addEventListener('click',e=>{const b=e.target.closest('[data-hide]');if(!b||!db||!isOwner)return;const id=b.dataset.hide,m=members[id];if(!m)return;
+  const next={...m,hidden:!m.hidden};delete next.id;members[id]=next;renderAll();q('m'+id,()=>db.doc('members/'+id).set(next));toast(next.hidden?`${m.nick} 제외했어요`:`${m.nick} 복구했어요`)});
 /* coffee + lunch menu */
-const joined=()=>Object.keys(members).filter(i=>members[i]&&members[i].nick);
+
 function saveMember(patch){if(!db||!me||!members[me])return;const next={...members[me],...patch};delete next.id;members[me]=next;renderCoffee();renderMenu();q('m',()=>db.doc('members/'+me).set(next))}
 function renderCoffee(){const my=members[me]||{},ids=joined();
   $('#cfOpts').innerHTML=COFFEE.map(([k,l,e,d])=>{const n=ids.filter(i=>members[i].coffee===k).length;return `<button class="opt ${my.coffee===k?'on':''}" data-cf="${k}"><span class="ic" aria-hidden="true">${e}</span><div><b>${l}</b><span class="d">${d}</span></div>${n?`<i class="cnt">${n}</i>`:''}</button>`}).join('');
@@ -636,7 +646,7 @@ function renderAll(){renderMe();renderCoffee();renderMenu();renderJr();renderAm(
   addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load().then(emit).catch(()=>{})});
   clearTimeout(timer);ready=true;
   const docs=s=>{const o={};s.docs.forEach(d=>o[d.id]={id:d.id,...d.data()});return o};
-  db.collection('members').onSnapshot(s=>{members=docs(s);if(!membersLoaded){membersLoaded=true;const m=members[me];if(!m||!m.nick||!m.role)openOb()}renderAll()});
+  db.collection('members').onSnapshot(s=>{members=docs(s);if(!membersLoaded){membersLoaded=true;const m=members[me];if(!m||!m.nick||!m.role||m.hidden)openOb()}else if(members[me]&&members[me].hidden&&$('#ob').hidden)openOb();renderAll()});
   db.collection('answers').onSnapshot(s=>{answers=docs(s);if(answers[me]&&!lastSaved)lastSaved=JSON.stringify({a:answers[me].a||{},revisit:answers[me].revisit||[]});renderAm();renderLunch();renderRevisit();renderEnd()});
   db.doc('meta/state').onSnapshot(d=>{const prev=meta.stage;meta=d.exists?d.data():{};if(!metaSeen){metaSeen=true;if(!location.hash&&meta.stage)go(meta.stage,true)}else if(meta.stage&&meta.stage!==prev&&meta.stage!==view){go(meta.stage,true);const s=STAGES.find(x=>x[0]===meta.stage);toast(`다음 단계: ${s?s[2]:''}`)}renderJr()});
   db.doc('meta/groups').onSnapshot(d=>{const prev=gAt;groups=d.exists?d.data():{};gAt=groups.at||0;const has=GN.some(g=>Array.isArray(groups[g])&&groups[g].length);if(prev!==null&&gAt!==prev&&has)revealGroups();else renderLunch();renderRevisit();renderEnd()});
