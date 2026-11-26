@@ -200,6 +200,8 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .ticket small{font-size:11px;font-weight:700;color:var(--sub)}
 .ticket b{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.15;overflow-wrap:anywhere}
 .ticket #tkRole{font-size:13px;font-weight:700}
+.resume{display:grid;gap:10px;margin-top:6px}
+.resume .chips button{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06);min-height:38px;padding:6px 14px;font-size:14px}
 /* square everything */
 *,*::before,*::after{border-radius:0!important}
 input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
@@ -314,6 +316,7 @@ input[type=text],textarea,button{-webkit-appearance:none;appearance:none}
         <button data-r="d"><small class="adm">ADMIT ONE</small><span class="ic" aria-hidden="true">🎨</span><i class="perf"></i><div><b>디자이너</b><span>표현 · 위계 · 톤</span></div></button>
         <button data-r="f"><small class="adm">ADMIT ONE</small><span class="ic" aria-hidden="true">🧑‍💻</span><i class="perf"></i><div><b>개발자</b><span>구현 · 상태 · 성능</span></div></button>
       </div>
+      <div class="resume" id="resume" hidden><p class="note">이미 입장했었나요? 내 이름을 누르면 그대로 이어서 해요</p><div class="chips" id="resumeList"></div></div>
       <div class="obbar"><div class="wrap"><button class="cta" id="obNext" disabled>다음</button></div></div>
     </div>
     <div id="ob2" style="display:none;gap:16px">
@@ -374,7 +377,7 @@ function renderJr(){
   if(nx)$('#nextBtn').innerHTML=`<b>다음 · ${nx[2]}</b><span>${nx[1]} →</span>`;
   $$('.host').forEach(h=>{h.classList.toggle('on',isOwner);h.innerHTML=isOwner?(meta.stage===h.dataset.host?'<span class="tag a">모두 이 단계에 있어요</span>':`<span>진행자 전용</span><button class="btn sm ghost" data-move="${h.dataset.host}">모두 이 단계로 이동</button>`):'';h.style.marginBottom=isOwner?'12px':''});
 }
-function go(s,push){if(!STAGES.some(x=>x[0]===s))s=STAGES[0][0];const changed=view!==s;view=s;$$('section[data-v]').forEach(x=>x.classList.toggle('show',x.dataset.v===s));renderJr();if(push&&location.hash!=='#'+s)history.replaceState(null,'','#'+s);if(changed)scrollTo({top:0})}
+function go(s,push){if(!STAGES.some(x=>x[0]===s))s=STAGES[0][0];const changed=view!==s;view=s;$$('section[data-v]').forEach(x=>x.classList.toggle('show',x.dataset.v===s));renderJr();if(push&&location.hash!=='#'+s)history.replaceState(null,'','#'+s);try{localStorage.setItem('dk_view',s)}catch(e){}if(changed)scrollTo({top:0})}
 $('#jr').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b)go(b.dataset.s,true)});
 const step=d=>{const i=STAGES.findIndex(x=>x[0]===view)+d;if(STAGES[i])go(STAGES[i][0],true)};
 $('#prevBtn').addEventListener('click',()=>step(-1));$('#nextBtn').addEventListener('click',()=>step(1));
@@ -383,8 +386,13 @@ document.addEventListener('click',e=>{const m=e.target.closest('[data-move]');if
 
 /* onboarding */
 let obRole='';
-function openOb(){const m=members[me]||{};obRole=m.role||'';$('#nickIn').value=m.nick||'';$('#obGo').disabled=!$('#nickIn').value.trim();paintRoles();$('#ob1').style.display='grid';$('#ob2').style.display='none';$('#ob').hidden=false}
+function openOb(){const ids=Object.keys(members).filter(i=>i!==me&&members[i]&&members[i].nick);
+  $('#resume').hidden=!ids.length||!!(members[me]&&members[me].nick);
+  $('#resumeList').innerHTML=ids.map(i=>`<button type="button" data-resume="${esc(i)}">${members[i].role==='d'?'🎨':members[i].role==='f'?'🧑‍💻':''} ${esc(members[i].nick)}</button>`).join('');
+  const m=members[me]||{};obRole=m.role||'';$('#nickIn').value=m.nick||'';$('#obGo').disabled=!$('#nickIn').value.trim();paintRoles();$('#ob1').style.display='grid';$('#ob2').style.display='none';$('#ob').hidden=false}
 function paintRoles(){$$('#roles button').forEach(b=>b.classList.toggle('on',b.dataset.r===obRole));$('#obNext').disabled=!obRole}
+$('#resumeList').addEventListener('click',e=>{const b=e.target.closest('[data-resume]');if(!b||!members[b.dataset.resume])return;
+  me=b.dataset.resume;try{localStorage.setItem('dk_uid',me)}catch(e){}lastSaved='';amFor=null;$('#ob').hidden=true;renderAll();toast(`${nick(me)}님, 다시 오셨네요!`)});
 $('#roles').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(b){obRole=b.dataset.r;paintRoles()}});
 $('#obNext').addEventListener('click',()=>{paintTk();$('#ob1').style.display='none';$('#ob2').style.display='grid';setTimeout(()=>$('#nickIn').focus(),30)});
 $('#obBack').addEventListener('click',()=>{$('#ob2').style.display='none';$('#ob1').style.display='grid'});
@@ -590,7 +598,7 @@ function renderMenu(){const my=members[me]||{},ids=joined(),voted=ids.filter(i=>
 $('#mnOpts').addEventListener('click',e=>{const b=e.target.closest('[data-mn]');if(b)saveMember({lunch:b.dataset.mn})});
 
 function renderAll(){renderMe();renderCoffee();renderMenu();renderJr();renderAm();renderLunch();renderRevisit();renderMissions();renderSolo();renderEnd()}
-go(location.hash.slice(1)||STAGES[0][0]);renderAll();
+{let sv=null;try{sv=localStorage.getItem('dk_view')}catch(e){}go(location.hash.slice(1)||sv||STAGES[0][0])}renderAll();
 
 /* connect (Supabase) */
 (async()=>{
